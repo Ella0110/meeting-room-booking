@@ -65,7 +65,7 @@ booking-app/
 - Create: `server/tsconfig.json`
 - Create: `server/.env.example`
 
-- [ ] **Step 1: Create root workspace package.json**
+- [x] **Step 1: Create root workspace package.json**
 
 ```json
 // package.json
@@ -80,7 +80,7 @@ booking-app/
 }
 ```
 
-- [ ] **Step 2: Create .gitignore**
+- [x] **Step 2: Create .gitignore**
 
 ```
 node_modules/
@@ -89,7 +89,7 @@ dist/
 *.env.local
 ```
 
-- [ ] **Step 3: Create server/package.json**
+- [x] **Step 3: Create server/package.json**
 
 ```json
 {
@@ -131,7 +131,7 @@ dist/
 }
 ```
 
-- [ ] **Step 4: Create server/tsconfig.json**
+- [x] **Step 4: Create server/tsconfig.json**
 
 ```json
 {
@@ -151,7 +151,7 @@ dist/
 }
 ```
 
-- [ ] **Step 5: Create server/.env.example**
+- [x] **Step 5: Create server/.env.example**
 
 ```
 DATABASE_URL=postgresql://postgres:password@localhost:5432/booking_app
@@ -165,7 +165,7 @@ EMAIL_FROM=noreply@booking.app
 NODE_ENV=development
 ```
 
-- [ ] **Step 6: Install dependencies**
+- [x] **Step 6: Install dependencies**
 
 ```bash
 cd server && npm install
@@ -173,7 +173,7 @@ cd server && npm install
 
 Expected: `node_modules/` created, no errors.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add package.json .gitignore server/package.json server/tsconfig.json server/.env.example
