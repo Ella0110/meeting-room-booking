@@ -778,7 +778,7 @@ git commit -m "feat: auth login and logout endpoints with tests"
 - Create: `server/src/routes/admin.ts` (invite endpoint only)
 - Create: `server/src/controllers/admin.controller.ts` (sendInvite only)
 
-- [ ] **Step 1: Create email service**
+- [x] **Step 1: Create email service**
 
 ```typescript
 // server/src/services/email.service.ts
@@ -816,7 +816,7 @@ export async function sendPasswordResetEmail(to: string, token: string) {
 }
 ```
 
-- [ ] **Step 2: Write failing invite tests**
+- [x] **Step 2: Write failing invite tests**
 
 ```typescript
 // Add to server/tests/auth.test.ts
@@ -877,7 +877,7 @@ describe('POST /api/admin/invitations + POST /api/auth/accept-invite', () => {
 })
 ```
 
-- [ ] **Step 3: Run — verify fail**
+- [x] **Step 3: Run — verify fail**
 
 ```bash
 cd server && npm test -- tests/auth.test.ts
@@ -885,7 +885,7 @@ cd server && npm test -- tests/auth.test.ts
 
 Expected: FAIL on invite tests.
 
-- [ ] **Step 4: Implement sendInvite (admin) and acceptInvite**
+- [x] **Step 4: Implement sendInvite (admin) and acceptInvite**
 
 ```typescript
 // server/src/routes/admin.ts
@@ -998,7 +998,7 @@ export async function acceptInvite(req: Request, res: Response, next: NextFuncti
 }
 ```
 
-- [ ] **Step 5: Run tests — verify pass**
+- [x] **Step 5: Run tests — verify pass**
 
 ```bash
 cd server && npm test -- tests/auth.test.ts
@@ -1006,7 +1006,7 @@ cd server && npm test -- tests/auth.test.ts
 
 Expected: all tests PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/src/ server/tests/
