@@ -1161,7 +1161,7 @@ git commit -m "feat: password reset flow"
 - Create: `server/src/routes/rooms.ts`
 - Create: `server/src/controllers/rooms.controller.ts`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```typescript
 // server/tests/auth.test.ts — add a new file server/tests/rooms.test.ts
@@ -1233,7 +1233,7 @@ describe('Admin room CRUD', () => {
 })
 ```
 
-- [ ] **Step 2: Run — verify fail**
+- [x] **Step 2: Run — verify fail**
 
 ```bash
 cd server && npm test -- tests/rooms.test.ts
@@ -1241,7 +1241,7 @@ cd server && npm test -- tests/rooms.test.ts
 
 Expected: FAIL.
 
-- [ ] **Step 3: Implement rooms routes and controller**
+- [x] **Step 3: Implement rooms routes and controller**
 
 ```typescript
 // server/src/routes/rooms.ts
@@ -1320,7 +1320,7 @@ export async function deleteRoom(req: Request, res: Response, next: NextFunction
 }
 ```
 
-- [ ] **Step 4: Run tests — verify pass**
+- [x] **Step 4: Run tests — verify pass**
 
 ```bash
 cd server && npm test -- tests/rooms.test.ts
@@ -1328,7 +1328,7 @@ cd server && npm test -- tests/rooms.test.ts
 
 Expected: all PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add server/src/ server/tests/rooms.test.ts
