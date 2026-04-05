@@ -1344,7 +1344,7 @@ git commit -m "feat: rooms API (list + admin CRUD)"
 
 This is the most critical task. All booking rules are validated here in a single transaction.
 
-- [ ] **Step 1: Write failing business rule tests**
+- [x] **Step 1: Write failing business rule tests**
 
 ```typescript
 // server/tests/bookings.test.ts
@@ -1475,7 +1475,7 @@ describe('POST /api/bookings — business rules', () => {
 })
 ```
 
-- [ ] **Step 2: Run — verify fail**
+- [x] **Step 2: Run — verify fail**
 
 ```bash
 cd server && npm test -- tests/bookings.test.ts
@@ -1483,7 +1483,7 @@ cd server && npm test -- tests/bookings.test.ts
 
 Expected: FAIL — routes not defined.
 
-- [ ] **Step 3: Implement booking.service.ts**
+- [x] **Step 3: Implement booking.service.ts**
 
 ```typescript
 // server/src/services/booking.service.ts
@@ -1592,7 +1592,7 @@ export async function cancelBooking(bookingId: string, requestingUserId: string,
 }
 ```
 
-- [ ] **Step 4: Run — verify business rule tests pass**
+- [x] **Step 4: Run — verify business rule tests pass**
 
 ```bash
 cd server && npm test -- tests/bookings.test.ts
@@ -1600,7 +1600,7 @@ cd server && npm test -- tests/bookings.test.ts
 
 Expected: the business rule tests pass once we add the routes in the next task.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/src/services/booking.service.ts server/tests/bookings.test.ts
@@ -1615,7 +1615,7 @@ git commit -m "feat: booking business rules service with transaction locking"
 - Create: `server/src/routes/bookings.ts`
 - Create: `server/src/controllers/bookings.controller.ts`
 
-- [ ] **Step 1: Implement routes and controller**
+- [x] **Step 1: Implement routes and controller**
 
 ```typescript
 // server/src/routes/bookings.ts
@@ -1719,7 +1719,7 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
 }
 ```
 
-- [ ] **Step 2: Run all booking tests**
+- [x] **Step 2: Run all booking tests**
 
 ```bash
 cd server && npm test -- tests/bookings.test.ts
@@ -1727,7 +1727,7 @@ cd server && npm test -- tests/bookings.test.ts
 
 Expected: all PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add server/src/routes/bookings.ts server/src/controllers/bookings.controller.ts
