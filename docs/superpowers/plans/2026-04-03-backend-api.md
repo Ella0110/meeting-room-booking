@@ -537,7 +537,7 @@ git commit -m "feat: express app scaffold with middleware and JWT helpers"
 - Create: `server/src/controllers/auth.controller.ts` (login + logout portions)
 - Create: `server/src/routes/auth.ts` (login + logout portions)
 
-- [ ] **Step 1: Create test helpers**
+- [x] **Step 1: Create test helpers**
 
 ```typescript
 // server/tests/helpers.ts
@@ -607,7 +607,7 @@ DATABASE_URL=postgresql://postgres:password@localhost:5432/booking_app_test \
   npx prisma migrate deploy --schema server/prisma/schema.prisma
 ```
 
-- [ ] **Step 2: Write failing login tests**
+- [x] **Step 2: Write failing login tests**
 
 ```typescript
 // server/tests/auth.test.ts
@@ -666,7 +666,7 @@ describe('POST /api/auth/logout', () => {
 })
 ```
 
-- [ ] **Step 3: Run tests — verify they fail**
+- [x] **Step 3: Run tests — verify they fail**
 
 ```bash
 cd server && npm test -- tests/auth.test.ts
@@ -674,7 +674,7 @@ cd server && npm test -- tests/auth.test.ts
 
 Expected: FAIL — routes not yet defined.
 
-- [ ] **Step 4: Implement login & logout routes**
+- [x] **Step 4: Implement login & logout routes**
 
 ```typescript
 // server/src/routes/auth.ts
@@ -753,7 +753,7 @@ export async function acceptInvite(_req: Request, res: Response, _next: NextFunc
 }
 ```
 
-- [ ] **Step 5: Run login tests — verify they pass**
+- [x] **Step 5: Run login tests — verify they pass**
 
 ```bash
 cd server && npm test -- tests/auth.test.ts
@@ -761,7 +761,7 @@ cd server && npm test -- tests/auth.test.ts
 
 Expected: all 5 tests PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/src/ server/tests/
