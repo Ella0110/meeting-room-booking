@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEETROOM — 俏皮野兽派</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Space Grotesk',sans-serif;background:#fff;overflow-x:hidden;}
+.mono{font-family:'Space Mono',monospace!important;}
+
+/* ===== BRUTALIST BASE ===== */
+.btn{
+  border:4px solid #000;box-shadow:6px 6px 0 0 #000;font-weight:900;cursor:pointer;
+  transition:all .15s;display:inline-flex;align-items:center;justify-content:center;
+  gap:6px;text-transform:uppercase;white-space:nowrap;
+  font-family:'Space Grotesk',sans-serif;letter-spacing:.3px;
+}
+.btn:hover{box-shadow:none;transform:translate(3px,3px);}
+.btn:active{box-shadow:none;transform:translate(5px,5px);}
+.btn-sm{padding:6px 14px;font-size:12px;}
+.btn-md{padding:10px 20px;font-size:13px;}
+.btn-lg{padding:14px 28px;font-size:15px;}
+
+.input-b{
+  border:4px solid #000!important;border-radius:0!important;
+  font-family:'Space Mono',monospace;font-size:13px;padding:10px 14px;
+  outline:none;transition:box-shadow .15s;width:100%;background:white;
+}
+.input-b:focus{box-shadow:6px 6px 0 0 #4ECDC4;}
+
+.tag{
+  display:inline-block;border:3px solid #000;padding:3px 8px;
+  font-size:10px;font-weight:900;text-transform:uppercase;
+  font-family:'Space Grotesk',sans-serif;letter-spacing:.5px;
+}
+.card-b{border:4px solid #000;box-shadow:6px 6px 0 0 #000;background:white;}
+
+/* ===== DESKTOP PANEL (right slide) ===== */
+#booking-panel{
+  position:fixed;top:0;right:0;bottom:0;width:360px;background:white;
+  border-left:4px solid #000;
+  transform:translateX(100%);
+  transition:transform .25s cubic-bezier(.25,.46,.45,.94);
+  z-index:200;overflow-y:auto;
+}
+#booking-panel.open{transform:translateX(0);}
+
+/* ===== MOBILE BOTTOM SHEET ===== */
+#bottom-sheet{
+  position:fixed;left:0;right:0;bottom:0;
+  background:white;border-top:4px solid #000;
+  box-shadow:0 -8px 0 0 rgba(0,0,0,.08);
+  transform:translateY(100%);
+  transition:transform .28s cubic-bezier(.25,.46,.45,.94);
+  z-index:200;max-height:90vh;overflow-y:auto;
+  border-radius:0;
+}
+#bottom-sheet.open{transform:translateY(0);}
+
+/* ===== SHARED OVERLAY ===== */
+#panel-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:199;
+}
+#panel-overlay.show{display:block;}
+
+/* ===== DECORATIONS ===== */
+.tilt-l{display:inline-block;transform:rotate(-2deg);}
+.tilt-r{display:inline-block;transform:rotate(1deg);}
+@keyframes spin{to{transform:rotate(360deg);}}
+.spin{animation:spin 5s linear infinite;display:inline-block;}
+@keyframes bounce-in{0%{transform:scale(.8);opacity:0;}60%{transform:scale(1.05);}100%{transform:scale(1);opacity:1;}}
+@keyframes flash-green{0%,100%{opacity:1;}50%{opacity:.3;background:#06D6A0!important;}}
+.booking-success{animation:flash-green .4s ease 1;}
+.my-booking{transition:all .12s;cursor:pointer;}
+.my-booking:hover{transform:scale(1.025)!important;}
+.empty-cell{cursor:pointer;transition:background .1s;}
+.empty-cell:hover{background:#FFFBEB!important;}
+.dur-btn.active{background:#8338EC!important;color:white!important;box-shadow:4px 4px 0 0 #000!important;}
+
+/* ===== MOBILE LAYOUT ===== */
+/* Bottom tab bar — hidden on desktop */
+#bottom-tabbar{display:none;}
+
+/* Mobile room tabs */
+#mobile-room-tabs{display:none;}
+
+/* Mobile time list */
+#mobile-cal{display:none;}
+
+@media(max-width:768px){
+  /* Hide desktop nav links + legend */
+  #desktop-nav-links{display:none!important;}
+  #legend-row{display:none!important;}
+  /* Hide desktop grid */
+  #page-calendar .desktop-only{display:none!important;}
+  /* Show mobile elements */
+  #mobile-room-tabs{display:flex!important;}
+  #mobile-cal{display:block!important;}
+  /* Show bottom tab bar, add padding to body */
+  #bottom-tabbar{display:flex!important;}
+  body{padding-bottom:64px;}
+  /* Panel → hide, use bottom sheet instead */
+  #booking-panel{display:none!important;}
+}
+@media(min-width:769px){
+  #bottom-sheet{display:none!important;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     TOP NAV
+============================================================ -->
+<nav style="background:#fff;border-bottom:4px solid #000;padding:12px 24px;position:sticky;top:0;z-index:100;">
+  <div style="display:flex;align-items:center;justify-content:space-between;max-width:1600px;margin:0 auto;">
+    <!-- Logo -->
+    <div style="display:flex;align-items:center;gap:6px;cursor:pointer;" onclick="showPage('calendar')">
+      <span class="tilt-l" style="background:#000;color:#fff;font-weight:900;font-size:17px;padding:4px 10px;letter-spacing:2px;">MEET</span>
+      <span style="font-weight:900;font-size:22px;letter-spacing:-.5px;">ROOM</span>
+      <span class="spin" style="color:#FFBE0B;font-size:18px;margin-left:2px;">✦</span>
+    </div>
+    <!-- Desktop nav links -->
+    <div id="desktop-nav-links" style="display:flex;align-items:center;gap:12px;">
+      <button onclick="showPage('calendar')" id="nav-cal"
+        style="background:none;border:none;border-bottom:4px solid #000;font-weight:700;font-size:12px;font-family:'Space Mono',monospace;padding:4px 2px;cursor:pointer;text-transform:uppercase;">日历</button>
+      <button onclick="showPage('mybookings')" id="nav-my"
+        style="background:none;border:none;border-bottom:2px solid transparent;font-weight:700;font-size:12px;font-family:'Space Mono',monospace;padding:4px 2px;cursor:pointer;text-transform:uppercase;transition:border-color .15s;"
+        onmouseover="this.style.borderBottomColor='#000'" onmouseout="if(currentPage!=='mybookings')this.style.borderBottomColor='transparent'">我的预订</button>
+      <button class="btn btn-sm" style="background:#FF006E;color:white;box-shadow:4px 4px 0 0 #000;">Ella ▾</button>
+    </div>
+    <!-- Mobile: just avatar -->
+    <button class="btn btn-sm" id="mobile-avatar"
+      style="display:none;background:#FF006E;color:white;box-shadow:4px 4px 0 0 #000;">
+      <style>@media(max-width:768px){#mobile-avatar{display:inline-flex!important;}}</style>
+      Ella ▾
+    </button>
+  </div>
+</nav>
+
+<!-- ============================================================
+     CALENDAR PAGE
+============================================================ -->
+<div id="page-calendar">
+
+  <!-- Date Bar -->
+  <div style="background:#FFBE0B;border-bottom:4px solid #000;padding:10px 16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;max-width:1600px;margin:0 auto;flex-wrap:wrap;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn btn-sm" style="background:#fff;color:#000;" onclick="changeDate(-1)">←</button>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="current-date" style="font-weight:900;font-size:15px;text-transform:uppercase;letter-spacing:.3px;">2026年4月5日 周日</span>
+          <span id="today-badge" class="tilt-r tag" style="background:#000;color:#FFBE0B;border-color:#000;font-size:9px;padding:2px 7px;">TODAY</span>
+        </div>
+        <button class="btn btn-sm" style="background:#fff;color:#000;" onclick="changeDate(1)">→</button>
+        <button class="btn btn-sm desktop-only" style="background:#000;color:#fff;" onclick="goToday()">★ 今天</button>
+      </div>
+      <div class="desktop-only" style="display:flex;align-items:center;gap:6px;">
+        <span class="mono" style="font-size:10px;font-weight:700;">视图:</span>
+        <button class="btn btn-sm" style="background:#000;color:#fff;box-shadow:none;">日</button>
+        <button class="btn btn-sm" style="background:#fff;color:#000;">周</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend (desktop only) -->
+  <div id="legend-row" style="background:#fff;border-bottom:2px solid #000;padding:8px 24px;overflow-x:auto;">
+    <div style="display:flex;align-items:center;gap:10px;max-width:1600px;margin:0 auto;flex-wrap:nowrap;">
+      <span class="mono" style="font-size:10px;font-weight:700;color:#888;white-space:nowrap;">ROOMS:</span>
+      <div id="legend" style="display:flex;gap:8px;flex-wrap:nowrap;"></div>
+    </div>
+  </div>
+
+  <!-- ---- MOBILE: Room Tabs ---- -->
+  <div id="mobile-room-tabs" style="overflow-x:auto;border-bottom:4px solid #000;background:#fff;padding:0;gap:0;flex-wrap:nowrap;"></div>
+
+  <!-- ---- MOBILE: Vertical time list ---- -->
+  <div id="mobile-cal" style="overflow-y:auto;height:calc(100vh - 172px);padding:0 0 16px;"></div>
+
+  <!-- ---- DESKTOP: Grid ---- -->
+  <div class="desktop-only" id="cal-scroll" style="overflow:auto;height:calc(100vh - 156px);">
+    <div id="cal-wrap" style="min-width:700px;position:relative;">
+      <div id="cal-header" style="position:sticky;top:0;z-index:50;display:flex;background:#fff;border-bottom:4px solid #000;"></div>
+      <div id="cal-body" style="position:relative;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MY BOOKINGS PAGE
+============================================================ -->
+<div id="page-mybookings" style="display:none;">
+  <div style="max-width:800px;margin:0 auto;padding:24px 16px;">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+      <div class="tilt-l card-b" style="background:#8338EC;border-color:#000;padding:10px 14px;">
+        <span style="font-size:24px;">📋</span>
+      </div>
+      <div>
+        <h1 style="font-weight:900;font-size:24px;text-transform:uppercase;letter-spacing:-.5px;">我的预订</h1>
+        <p class="mono" style="font-size:11px;color:#888;margin-top:4px;">今日共 4 条确认预订</p>
+      </div>
+    </div>
+    <div style="display:flex;border-bottom:4px solid #000;margin-bottom:20px;">
+      <button id="tab-upcoming" class="btn btn-md" onclick="switchTab('upcoming')"
+        style="background:#000;color:#fff;box-shadow:none;transform:none;border-bottom:none;">即将到来</button>
+      <button id="tab-history" class="btn btn-md" onclick="switchTab('history')"
+        style="background:#fff;color:#000;box-shadow:none;transform:none;border-bottom:none;margin-left:4px;">历史记录</button>
+    </div>
+    <div id="booking-cards" style="display:flex;flex-direction:column;gap:14px;"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     DESKTOP: Right-slide booking panel
+============================================================ -->
+<div id="panel-overlay" onclick="closePanel()"></div>
+<div id="booking-panel">
+  <div style="padding:24px;display:flex;flex-direction:column;gap:18px;min-height:100%;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+      <div>
+        <div class="tilt-l" style="display:inline-block;margin-bottom:10px;">
+          <span id="panel-tag" class="tag" style="background:#FFBE0B;font-size:11px;padding:4px 10px;">✦ 新建预订</span>
+        </div>
+        <h2 id="panel-room-name" style="font-weight:900;font-size:24px;text-transform:uppercase;letter-spacing:-.5px;">珊瑚厅</h2>
+      </div>
+      <button onclick="closePanel()" class="btn btn-sm" style="background:#fff;color:#000;padding:6px 10px;flex-shrink:0;">✕</button>
+    </div>
+    <div id="panel-room-card" style="border:4px solid #000;padding:14px 16px;background:#FFBE0B;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div id="panel-room-detail" style="font-weight:900;font-size:13px;text-transform:uppercase;">珊瑚厅 · 10人 · SHARED</div>
+        <div id="panel-zone-note" class="mono" style="font-size:10px;margin-top:4px;color:#555;">任意日期 09:00–18:00</div>
+      </div>
+      <span id="panel-room-emoji" style="font-size:32px;">🪸</span>
+    </div>
+    <div style="border:4px solid #000;padding:14px 16px;background:#fff;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+        <div id="panel-start-time" class="mono" style="background:#000;color:#fff;font-weight:700;font-size:17px;padding:6px 14px;">09:00</div>
+        <span style="font-weight:900;font-size:20px;">→</span>
+        <div id="panel-end-time" class="mono" style="background:#000;color:#fff;font-weight:700;font-size:17px;padding:6px 14px;">10:00</div>
+      </div>
+      <div id="panel-date" class="mono" style="font-size:11px;color:#888;font-weight:700;text-transform:uppercase;">2026年4月5日 周日</div>
+    </div>
+    <div>
+      <label style="font-weight:900;font-size:12px;text-transform:uppercase;display:block;margin-bottom:8px;">会议主题 *</label>
+      <input id="panel-title-input" type="text" class="input-b" placeholder="输入会议主题...">
+    </div>
+    <div>
+      <label style="font-weight:900;font-size:12px;text-transform:uppercase;display:block;margin-bottom:8px;">时长</label>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+        <button class="btn btn-sm dur-btn" onclick="setDuration(this,1,'desktop')" style="background:#fff;color:#000;">30分</button>
+        <button class="btn btn-sm dur-btn active" onclick="setDuration(this,2,'desktop')" style="background:#8338EC;color:#fff;box-shadow:4px 4px 0 0 #000;">1小时</button>
+        <button class="btn btn-sm dur-btn" onclick="setDuration(this,3,'desktop')" style="background:#fff;color:#000;">1.5时</button>
+        <button class="btn btn-sm dur-btn" onclick="setDuration(this,4,'desktop')" style="background:#fff;color:#000;">2小时</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:auto;padding-top:16px;border-top:4px solid #000;">
+      <button class="btn btn-lg" onclick="confirmBooking('desktop')"
+        style="background:#000;color:#fff;width:100%;box-shadow:6px 6px 0 0 #FFBE0B;">✓ 确认预订</button>
+      <button onclick="closePanel()" class="btn btn-lg" style="background:#fff;color:#000;width:100%;">取消</button>
+    </div>
+    <p class="mono" style="font-size:11px;color:#aaa;text-align:center;">⚠ 开始前1小时内不可取消</p>
+  </div>
+</div>
+
+<!-- ============================================================
+     MOBILE: Bottom Sheet
+============================================================ -->
+<div id="bottom-sheet">
+  <!-- Drag handle -->
+  <div style="display:flex;justify-content:center;padding:12px 0 4px;">
+    <div style="width:48px;height:5px;background:#000;border-radius:0;"></div>
+  </div>
+  <div style="padding:20px 20px 32px;display:flex;flex-direction:column;gap:16px;">
+    <!-- Header -->
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+      <div>
+        <div class="tilt-l" style="display:inline-block;margin-bottom:8px;">
+          <span id="bs-tag" class="tag" style="background:#FFBE0B;font-size:10px;padding:3px 8px;">✦ 新建预订</span>
+        </div>
+        <h2 id="bs-room-name" style="font-weight:900;font-size:20px;text-transform:uppercase;letter-spacing:-.5px;">珊瑚厅</h2>
+      </div>
+      <button onclick="closePanel()" class="btn btn-sm" style="background:#fff;color:#000;padding:5px 9px;flex-shrink:0;">✕</button>
+    </div>
+    <!-- Room + Time row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div id="bs-room-card" style="border:4px solid #000;padding:10px 12px;background:#FFBE0B;display:flex;align-items:center;justify-content:space-between;">
+        <div id="bs-room-detail" style="font-weight:900;font-size:11px;text-transform:uppercase;line-height:1.4;">珊瑚厅<br><span class="mono" style="font-size:9px;opacity:.8;">10人 · SHARED</span></div>
+        <span id="bs-room-emoji" style="font-size:24px;">🪸</span>
+      </div>
+      <div style="border:4px solid #000;padding:10px 12px;background:#fff;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+          <span id="bs-start-time" class="mono" style="background:#000;color:#fff;font-weight:700;font-size:14px;padding:3px 8px;">09:00</span>
+          <span style="font-weight:900;">→</span>
+          <span id="bs-end-time" class="mono" style="background:#000;color:#fff;font-weight:700;font-size:14px;padding:3px 8px;">10:00</span>
+        </div>
+        <div class="mono" style="font-size:9px;color:#888;font-weight:700;text-transform:uppercase;">今天</div>
+      </div>
+    </div>
+    <!-- Title input -->
+    <div>
+      <label style="font-weight:900;font-size:12px;text-transform:uppercase;display:block;margin-bottom:6px;">会议主题 *</label>
+      <input id="bs-title-input" type="text" class="input-b" placeholder="输入会议主题...">
+    </div>
+    <!-- Duration -->
+    <div>
+      <label style="font-weight:900;font-size:12px;text-transform:uppercase;display:block;margin-bottom:6px;">时长</label>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+        <button class="btn btn-sm bs-dur-btn" onclick="setDuration(this,1,'mobile')" style="background:#fff;color:#000;">30分</button>
+        <button class="btn btn-sm bs-dur-btn active" onclick="setDuration(this,2,'mobile')" style="background:#8338EC;color:#fff;box-shadow:4px 4px 0 0 #000;">1小时</button>
+        <button class="btn btn-sm bs-dur-btn" onclick="setDuration(this,3,'mobile')" style="background:#fff;color:#000;">1.5时</button>
+        <button class="btn btn-sm bs-dur-btn" onclick="setDuration(this,4,'mobile')" style="background:#fff;color:#000;">2小时</button>
+      </div>
+    </div>
+    <!-- CTA -->
+    <button class="btn btn-lg" onclick="confirmBooking('mobile')"
+      style="background:#000;color:#fff;width:100%;box-shadow:6px 6px 0 0 #FFBE0B;margin-top:4px;">✓ 确认预订</button>
+    <p class="mono" style="font-size:10px;color:#aaa;text-align:center;">⚠ 开始前1小时内不可取消</p>
+  </div>
+</div>
+
+<!-- ============================================================
+     MOBILE: Bottom Tab Bar
+============================================================ -->
+<div id="bottom-tabbar"
+  style="position:fixed;bottom:0;left:0;right:0;z-index:150;
+         background:#fff;border-top:4px solid #000;
+         justify-content:stretch;gap:0;">
+  <button id="tab-cal" onclick="showPage('calendar')"
+    style="flex:1;border:none;border-right:3px solid #000;background:#000;color:#fff;
+           padding:12px 0;font-weight:900;font-size:11px;text-transform:uppercase;
+           font-family:'Space Grotesk',sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">
+    <span style="font-size:18px;">📅</span>
+    <span>日历</span>
+  </button>
+  <button id="tab-my" onclick="showPage('mybookings')"
+    style="flex:1;border:none;border-right:3px solid #000;background:#fff;color:#000;
+           padding:12px 0;font-weight:900;font-size:11px;text-transform:uppercase;
+           font-family:'Space Grotesk',sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">
+    <span style="font-size:18px;">📋</span>
+    <span>我的预订</span>
+  </button>
+  <button
+    style="flex:1;border:none;background:#FF006E;color:#fff;
+           padding:12px 0;font-weight:900;font-size:11px;text-transform:uppercase;
+           font-family:'Space Grotesk',sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">
+    <span style="font-size:18px;">👤</span>
+    <span>Ella</span>
+  </button>
+</div>
+
+<!-- ============================================================
+     SCRIPT
+============================================================ -->
+<script>
+// ===== DATA =====
+const SLOT_H=58, TOTAL_SLOTS=18, START_H=9, TIME_COL_W=72;
+
+const rooms=[
+  {id:1,name:'珊瑚厅',cap:10,zone:'SHARED',color:'#FFBE0B',text:'#000',emoji:'🪸'},
+  {id:2,name:'极光厅',cap:6, zone:'OFFICE',color:'#FF006E',text:'#fff',emoji:'🌌'},
+  {id:3,name:'星云厅',cap:8, zone:'SHARED',color:'#8338EC',text:'#fff',emoji:'🌠'},
+  {id:4,name:'翡翠厅',cap:4, zone:'OFFICE',color:'#06D6A0',text:'#000',emoji:'💎'},
+  {id:5,name:'烈焰厅',cap:12,zone:'SHARED',color:'#FB5607',text:'#fff',emoji:'🔥'},
+];
+
+let bookings=[
+  {id:'b1',roomId:1,start:0,dur:3,title:'产品规划讨论',mine:true},
+  {id:'b2',roomId:2,start:2,dur:2,title:null,mine:false},
+  {id:'b3',roomId:3,start:0,dur:1,title:'设计评审',mine:true},
+  {id:'b4',roomId:3,start:1,dur:2,title:null,mine:false},
+  {id:'b5',roomId:2,start:10,dur:4,title:null,mine:false},
+  {id:'b6',roomId:5,start:4,dur:2,title:'全体大会',mine:true},
+  {id:'b7',roomId:4,start:12,dur:2,title:'1对1面谈',mine:true},
+];
+
+const blocked=[{roomId:4,start:8,dur:1,reason:'设备维护'}];
+
+let currentPage='calendar';
+let currentRoom=rooms[0], currentSlot=0, selectedDur=2;
+let dateOffset=0;
+let mobileRoomIdx=0; // selected room tab on mobile
+
+// ===== HELPERS =====
+function slotToTime(s){
+  const m=START_H*60+s*30;
+  return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
+}
+function isMobile(){return window.innerWidth<=768;}
+function isCovered(rid,s){
+  return bookings.some(b=>b.roomId===rid&&s>b.start&&s<b.start+b.dur)||
+         blocked.some(b=>b.roomId===rid&&s>b.start&&s<b.start+b.dur);
+}
+function getBookingAt(rid,s){return bookings.find(b=>b.roomId===rid&&b.start===s);}
+function getBlockedAt(rid,s){return blocked.find(b=>b.roomId===rid&&b.start===s);}
+
+// ===== LEGEND (desktop) =====
+function buildLegend(){
+  const leg=document.getElementById('legend');
+  leg.innerHTML='';
+  rooms.forEach(r=>{
+    const el=document.createElement('div');
+    el.style.cssText='display:flex;align-items:center;gap:5px;';
+    el.innerHTML=`<span style="width:14px;height:14px;background:${r.color};border:2px solid #000;display:inline-block;flex-shrink:0;"></span><span style="font-weight:700;font-size:11px;white-space:nowrap;">${r.emoji} ${r.name}</span><span class="mono" style="font-size:9px;color:#888;">${r.cap}人</span>`;
+    leg.appendChild(el);
+  });
+  [{color:'#d1d5db',label:'他人预订',emoji:''},{color:'repeating-linear-gradient(-45deg,#d1d5db,#d1d5db 3px,#f3f4f6 3px,#f3f4f6 10px)',label:'封锁时段',emoji:'🔒'}].forEach(e=>{
+    const el=document.createElement('div');
+    el.style.cssText='display:flex;align-items:center;gap:5px;margin-left:8px;';
+    el.innerHTML=`<span style="width:14px;height:14px;background:${e.color};border:2px solid #000;display:inline-block;flex-shrink:0;"></span><span style="font-weight:700;font-size:11px;white-space:nowrap;">${e.emoji} ${e.label}</span>`;
+    leg.appendChild(el);
+  });
+}
+
+// ===== DESKTOP GRID =====
+function buildGrid(){
+  const header=document.getElementById('cal-header');
+  const body=document.getElementById('cal-body');
+  const wrap=document.getElementById('cal-wrap');
+  const scrollW=document.getElementById('cal-scroll').clientWidth||window.innerWidth;
+  const COL_W=Math.max(148,Math.floor((scrollW-TIME_COL_W)/rooms.length));
+  const TOTAL_W=TIME_COL_W+rooms.length*COL_W;
+  const TOTAL_H=TOTAL_SLOTS*SLOT_H;
+  wrap.style.width=`${TOTAL_W}px`;
+  header.style.cssText=`position:sticky;top:0;z-index:50;display:flex;background:#fff;border-bottom:4px solid #000;width:${TOTAL_W}px;`;
+  header.innerHTML='';
+  const th=document.createElement('div');
+  th.style.cssText=`width:${TIME_COL_W}px;flex-shrink:0;border-right:4px solid #000;padding:12px 8px;display:flex;align-items:flex-end;justify-content:flex-end;`;
+  th.innerHTML=`<span style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;">TIME</span>`;
+  header.appendChild(th);
+  rooms.forEach((room,i)=>{
+    const rh=document.createElement('div');
+    rh.style.cssText=`width:${COL_W}px;flex-shrink:0;background:${room.color};border:4px solid #000;border-top:none;${i<rooms.length-1?'border-right:4px solid #000;':''}padding:10px 12px;`;
+    rh.innerHTML=`<div style="font-weight:900;font-size:13px;text-transform:uppercase;color:${room.text};display:flex;align-items:center;gap:5px;"><span style="font-size:18px;">${room.emoji}</span><span>${room.name}</span></div><div style="font-family:'Space Mono',monospace;font-size:10px;color:${room.text};opacity:.85;margin-top:3px;text-transform:uppercase;">${room.cap}人 · ${room.zone}</div>`;
+    header.appendChild(rh);
+  });
+  body.innerHTML='';
+  body.style.cssText=`position:relative;width:${TOTAL_W}px;height:${TOTAL_H}px;`;
+  for(let s=0;s<TOTAL_SLOTS;s++){
+    const y=s*SLOT_H, isHour=s%2===0;
+    const tl=document.createElement('div');
+    tl.style.cssText=`position:absolute;top:${y}px;left:0;width:${TIME_COL_W}px;height:${SLOT_H}px;border-right:4px solid #000;border-bottom:${isHour?'1px solid #e5e7eb':'1px dashed #f0f0f0'};padding:4px 8px 0 0;display:flex;align-items:flex-start;justify-content:flex-end;background:#fff;z-index:5;`;
+    tl.innerHTML=isHour?`<span style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;">${slotToTime(s)}</span>`:`<span style="font-family:'Space Mono',monospace;font-size:9px;color:#bbb;">${slotToTime(s)}</span>`;
+    body.appendChild(tl);
+  }
+  rooms.forEach((room,ri)=>{
+    const colX=TIME_COL_W+ri*COL_W;
+    for(let s=0;s<TOTAL_SLOTS;s++){
+      if(isCovered(room.id,s)||getBookingAt(room.id,s)||getBlockedAt(room.id,s))continue;
+      const y=s*SLOT_H, isHour=s%2===0;
+      const cell=document.createElement('div');
+      cell.className='empty-cell';
+      cell.style.cssText=`position:absolute;top:${y}px;left:${colX}px;width:${COL_W}px;height:${SLOT_H}px;border-right:1px solid #e5e7eb;border-bottom:${isHour?'1px solid #e5e7eb':'1px dashed #f3f3f3'};background:#fff;z-index:1;`;
+      cell.title=`${room.name} · ${slotToTime(s)}`;
+      cell.addEventListener('click',()=>openPanel(room,s));
+      body.appendChild(cell);
+    }
+    for(let s=0;s<TOTAL_SLOTS;s++){
+      if(!isCovered(room.id,s))continue;
+      const y=s*SLOT_H, isHour=s%2===0;
+      const cell=document.createElement('div');
+      cell.style.cssText=`position:absolute;top:${y}px;left:${colX}px;width:${COL_W}px;height:${SLOT_H}px;border-right:1px solid #e5e7eb;border-bottom:${isHour?'1px solid #e5e7eb':'1px dashed #f3f3f3'};background:transparent;z-index:0;pointer-events:none;`;
+      body.appendChild(cell);
+    }
+    blocked.filter(b=>b.roomId===room.id).forEach(b=>{
+      const y=b.start*SLOT_H, h=b.dur*SLOT_H;
+      const el=document.createElement('div');
+      el.style.cssText=`position:absolute;top:${y+2}px;left:${colX+2}px;width:${COL_W-4}px;height:${h-4}px;background:repeating-linear-gradient(-45deg,#d1d5db,#d1d5db 3px,#f3f4f6 3px,#f3f4f6 10px);border:3px solid #9ca3af;z-index:8;display:flex;align-items:center;justify-content:center;cursor:not-allowed;`;
+      el.innerHTML=`<span style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;background:rgba(255,255,255,.75);padding:2px 7px;border:1px solid #9ca3af;">🔒 ${b.reason}</span>`;
+      body.appendChild(el);
+    });
+    bookings.filter(b=>b.roomId===room.id).forEach(b=>{
+      const y=b.start*SLOT_H, h=b.dur*SLOT_H;
+      const el=document.createElement('div');
+      el.id=`booking-${b.id}`;
+      if(b.mine){
+        el.className='my-booking';
+        el.style.cssText=`position:absolute;top:${y+2}px;left:${colX+2}px;width:${COL_W-4}px;height:${h-4}px;background:${room.color};border:3px solid #000;box-shadow:4px 4px 0 0 #000;z-index:10;padding:8px 10px;overflow:hidden;`;
+        el.innerHTML=`<div style="font-weight:900;font-size:12px;text-transform:uppercase;color:${room.text};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:.3px;">${b.title}</div><div style="font-family:'Space Mono',monospace;font-size:10px;color:${room.text};opacity:.8;margin-top:3px;">${slotToTime(b.start)} → ${slotToTime(b.start+b.dur)}</div><div style="position:absolute;bottom:5px;right:7px;font-size:10px;background:rgba(0,0,0,.2);padding:1px 5px;font-weight:900;text-transform:uppercase;color:${room.text};font-family:'Space Mono',monospace;border:1px solid rgba(0,0,0,.3);">我的</div>`;
+      } else {
+        el.style.cssText=`position:absolute;top:${y+2}px;left:${colX+2}px;width:${COL_W-4}px;height:${h-4}px;background:#d1d5db;border:3px solid #000;z-index:10;padding:8px 10px;overflow:hidden;cursor:default;`;
+        el.innerHTML=`<div style="font-weight:900;font-size:11px;text-transform:uppercase;color:#6b7280;">已预订</div><div style="font-family:'Space Mono',monospace;font-size:10px;color:#9ca3af;margin-top:3px;">${slotToTime(b.start)} → ${slotToTime(b.start+b.dur)}</div>`;
+      }
+      body.appendChild(el);
+    });
+  });
+}
+
+// ===== MOBILE: Room Tabs =====
+function buildMobileRoomTabs(){
+  const tabs=document.getElementById('mobile-room-tabs');
+  tabs.innerHTML='';
+  rooms.forEach((r,i)=>{
+    const btn=document.createElement('button');
+    const isActive=i===mobileRoomIdx;
+    btn.style.cssText=`
+      flex-shrink:0;border:none;border-right:3px solid #000;
+      background:${isActive?r.color:'#fff'};
+      color:${isActive?r.text:'#000'};
+      padding:10px 16px;font-weight:900;font-size:12px;text-transform:uppercase;
+      font-family:'Space Grotesk',sans-serif;cursor:pointer;
+      display:flex;align-items:center;gap:5px;
+      border-bottom:${isActive?'4px solid #000':'none'};
+      transition:background .15s;
+    `;
+    btn.innerHTML=`<span style="font-size:16px;">${r.emoji}</span><span>${r.name}</span>`;
+    btn.onclick=()=>{mobileRoomIdx=i;buildMobileRoomTabs();buildMobileTimeline();};
+    tabs.appendChild(btn);
+  });
+}
+
+// ===== MOBILE: Vertical Timeline =====
+function buildMobileTimeline(){
+  const container=document.getElementById('mobile-cal');
+  container.innerHTML='';
+  const room=rooms[mobileRoomIdx];
+  // Room info banner
+  const banner=document.createElement('div');
+  banner.style.cssText=`background:${room.color};border-bottom:4px solid #000;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;`;
+  banner.innerHTML=`<div><div style="font-weight:900;font-size:14px;text-transform:uppercase;color:${room.text};">${room.emoji} ${room.name}</div><div style="font-family:'Space Mono',monospace;font-size:10px;color:${room.text};opacity:.85;margin-top:2px;">${room.cap}人 · ${room.zone}</div></div><div class="tilt-r" style="background:#000;color:#fff;font-weight:900;font-size:10px;padding:3px 8px;text-transform:uppercase;">TODAY</div>`;
+  container.appendChild(banner);
+
+  for(let s=0;s<TOTAL_SLOTS;s++){
+    const isHour=s%2===0;
+    const bk=getBookingAt(room.id,s);
+    const bl=getBlockedAt(room.id,s);
+    const covered=isCovered(room.id,s);
+    if(covered)continue; // skip covered rows (booking spans over them)
+
+    const row=document.createElement('div');
+    row.style.cssText=`display:flex;border-bottom:${isHour?'1px solid #e5e7eb':'1px dashed #f3f3f3'};min-height:60px;`;
+
+    // Time label
+    const tl=document.createElement('div');
+    tl.style.cssText=`width:60px;flex-shrink:0;border-right:4px solid #000;padding:6px 8px 0 0;display:flex;align-items:flex-start;justify-content:flex-end;background:#fff;`;
+    tl.innerHTML=isHour?`<span style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;">${slotToTime(s)}</span>`:`<span style="font-family:'Space Mono',monospace;font-size:9px;color:#bbb;">${slotToTime(s)}</span>`;
+    row.appendChild(tl);
+
+    // Content cell
+    const cell=document.createElement('div');
+    cell.style.cssText=`flex:1;position:relative;`;
+
+    if(bl){
+      // Blocked
+      cell.style.cssText+=`background:repeating-linear-gradient(-45deg,#d1d5db,#d1d5db 3px,#f3f4f6 3px,#f3f4f6 10px);display:flex;align-items:center;padding:0 12px;cursor:not-allowed;min-height:${bl.dur*60}px;`;
+      cell.innerHTML=`<span style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:#6b7280;background:rgba(255,255,255,.8);padding:2px 8px;border:1px solid #9ca3af;">🔒 ${bl.reason}</span>`;
+      // span over multiple slots
+      for(let k=1;k<bl.dur;k++){
+        const nextRow=document.createElement('div');// skip
+      }
+    } else if(bk){
+      const h=bk.dur*60;
+      if(bk.mine){
+        cell.style.cssText+=`padding:0;`;
+        const inner=document.createElement('div');
+        inner.className='my-booking';
+        inner.style.cssText=`margin:3px;background:${room.color};border:3px solid #000;box-shadow:3px 3px 0 0 #000;padding:10px 12px;min-height:${h-6}px;position:relative;overflow:hidden;`;
+        inner.innerHTML=`<div style="font-weight:900;font-size:13px;text-transform:uppercase;color:${room.text};">${bk.title}</div><div style="font-family:'Space Mono',monospace;font-size:10px;color:${room.text};opacity:.8;margin-top:4px;">${slotToTime(bk.start)} → ${slotToTime(bk.start+bk.dur)}</div><div style="position:absolute;bottom:6px;right:8px;font-size:10px;background:rgba(0,0,0,.2);padding:1px 5px;font-weight:900;text-transform:uppercase;color:${room.text};font-family:'Space Mono',monospace;">我的</div>`;
+        cell.appendChild(inner);
+        row.style.minHeight=`${h}px`;
+      } else {
+        cell.style.cssText+=`padding:0;`;
+        const inner=document.createElement('div');
+        inner.style.cssText=`margin:3px;background:#d1d5db;border:3px solid #000;padding:10px 12px;min-height:${h-6}px;`;
+        inner.innerHTML=`<div style="font-weight:900;font-size:12px;text-transform:uppercase;color:#6b7280;">已预订</div><div style="font-family:'Space Mono',monospace;font-size:10px;color:#9ca3af;margin-top:4px;">${slotToTime(bk.start)} → ${slotToTime(bk.start+bk.dur)}</div>`;
+        cell.appendChild(inner);
+        row.style.minHeight=`${h}px`;
+      }
+    } else {
+      // Empty — tappable
+      cell.style.cssText+=`cursor:pointer;background:#fff;transition:background .1s;display:flex;align-items:center;padding:0 14px;`;
+      cell.innerHTML=`<span style="font-family:'Space Mono',monospace;font-size:11px;color:#ccc;font-weight:700;">点击预订</span>`;
+      cell.addEventListener('touchstart',()=>{cell.style.background='#FFFBEB';},{passive:true});
+      cell.addEventListener('touchend',()=>{cell.style.background='#fff';});
+      cell.addEventListener('click',()=>openPanel(room,s));
+    }
+
+    row.appendChild(cell);
+    container.appendChild(row);
+  }
+}
+
+// ===== PANEL (shared logic) =====
+function openPanel(room, slot){
+  currentRoom=room; currentSlot=slot;
+  const timeStart=slotToTime(slot), timeEnd=slotToTime(slot+selectedDur);
+
+  if(isMobile()){
+    document.getElementById('bs-room-name').textContent=room.name;
+    document.getElementById('bs-room-emoji').textContent=room.emoji;
+    document.getElementById('bs-room-detail').innerHTML=`${room.name}<br><span class="mono" style="font-size:9px;opacity:.8;">${room.cap}人 · ${room.zone}</span>`;
+    document.getElementById('bs-room-card').style.background=room.color;
+    document.getElementById('bs-tag').style.background=room.color;
+    document.getElementById('bs-tag').style.color=room.text;
+    document.getElementById('bs-start-time').textContent=timeStart;
+    document.getElementById('bs-end-time').textContent=timeEnd;
+    document.getElementById('bs-title-input').value='';
+    document.querySelectorAll('.bs-dur-btn').forEach(b=>{
+      if(b.classList.contains('active')){b.style.background=room.color;b.style.color=room.text;}
+    });
+    document.getElementById('bottom-sheet').classList.add('open');
+    document.getElementById('panel-overlay').classList.add('show');
+    setTimeout(()=>document.getElementById('bs-title-input').focus(),300);
+  } else {
+    document.getElementById('panel-room-name').textContent=room.name;
+    document.getElementById('panel-room-emoji').textContent=room.emoji;
+    document.getElementById('panel-room-detail').textContent=`${room.name} · ${room.cap}人 · ${room.zone}`;
+    document.getElementById('panel-zone-note').textContent=room.zone==='SHARED'?'任意日期 09:00–18:00':'仅工作日';
+    document.getElementById('panel-room-card').style.background=room.color;
+    document.getElementById('panel-tag').style.background=room.color;
+    document.getElementById('panel-tag').style.color=room.text;
+    document.getElementById('panel-start-time').textContent=timeStart;
+    document.getElementById('panel-end-time').textContent=timeEnd;
+    document.getElementById('panel-title-input').value='';
+    document.querySelectorAll('.dur-btn').forEach(b=>{
+      if(b.classList.contains('active')){b.style.background=room.color;b.style.color=room.text;}
+    });
+    document.getElementById('booking-panel').classList.add('open');
+    document.getElementById('panel-overlay').classList.add('show');
+    setTimeout(()=>document.getElementById('panel-title-input').focus(),300);
+  }
+}
+
+function closePanel(){
+  document.getElementById('booking-panel').classList.remove('open');
+  document.getElementById('bottom-sheet').classList.remove('open');
+  document.getElementById('panel-overlay').classList.remove('show');
+}
+
+function setDuration(btn, slots, context){
+  selectedDur=slots;
+  const selector=context==='mobile'?'.bs-dur-btn':'.dur-btn';
+  document.querySelectorAll(selector).forEach(b=>{
+    b.classList.remove('active');
+    b.style.background='#fff';b.style.color='#000';b.style.boxShadow='6px 6px 0 0 #000';
+  });
+  btn.classList.add('active');
+  btn.style.background=currentRoom.color;btn.style.color=currentRoom.text;
+  const endId=context==='mobile'?'bs-end-time':'panel-end-time';
+  document.getElementById(endId).textContent=slotToTime(currentSlot+slots);
+}
+
+function confirmBooking(context){
+  const inputId=context==='mobile'?'bs-title-input':'panel-title-input';
+  const title=document.getElementById(inputId).value.trim();
+  if(!title){
+    document.getElementById(inputId).style.boxShadow='6px 6px 0 0 #FF006E';
+    document.getElementById(inputId).placeholder='请输入会议主题！';
+    return;
+  }
+  const newId='b'+Date.now();
+  bookings.push({id:newId,roomId:currentRoom.id,start:currentSlot,dur:selectedDur,title,mine:true});
+  closePanel();
+  if(isMobile()){buildMobileTimeline();}
+  else{buildGrid();setTimeout(()=>{const el=document.getElementById(`booking-${newId}`);if(el)el.classList.add('booking-success');},50);}
+}
+
+// ===== MY BOOKINGS =====
+function buildMyBookings(){
+  const c=document.getElementById('booking-cards');
+  const mine=bookings.filter(b=>b.mine);
+  c.innerHTML='';
+  if(!mine.length){c.innerHTML=`<div style="text-align:center;padding:40px 24px;border:4px dashed #d1d5db;"><div style="font-size:40px;margin-bottom:12px;">📭</div><div style="font-weight:900;text-transform:uppercase;">暂无预订</div></div>`;return;}
+  mine.forEach(b=>{
+    const room=rooms.find(r=>r.id===b.roomId);
+    const canCancel=b.start>2;
+    const card=document.createElement('div');
+    card.style.cssText=`border:4px solid #000;box-shadow:6px 6px 0 0 ${room.color};padding:16px;background:#fff;cursor:pointer;transition:all .15s;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;`;
+    card.onmouseover=()=>{card.style.boxShadow='none';card.style.transform='translate(6px,6px)';};
+    card.onmouseout=()=>{card.style.boxShadow=`6px 6px 0 0 ${room.color}`;card.style.transform='';};
+    card.innerHTML=`<div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;"><span class="tag" style="background:${room.color};color:${room.text};">${room.emoji} ${room.name}</span><span class="tag" style="font-family:'Space Mono',monospace;">${room.zone} · ${room.cap}人</span></div><h3 style="font-weight:900;font-size:16px;text-transform:uppercase;letter-spacing:-.3px;margin-bottom:4px;">${b.title}</h3><p style="font-family:'Space Mono',monospace;font-size:11px;color:#6b7280;">2026-04-05&nbsp;&nbsp;${slotToTime(b.start)} — ${slotToTime(b.start+b.dur)}</p></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;"><span class="tag" style="background:#06D6A0;">✓ 已确认</span>${canCancel?`<button class="btn btn-sm" onclick="cancelBooking('${b.id}',event)" style="background:#fff;color:#FF006E;border-color:#FF006E;box-shadow:4px 4px 0 0 #FF006E;">取消</button>`:`<span style="font-family:'Space Mono',monospace;font-size:10px;color:#FF006E;font-weight:700;white-space:nowrap;">⚠ 无法取消</span>`}</div>`;
+    c.appendChild(card);
+  });
+}
+
+function cancelBooking(id,e){
+  e.stopPropagation();bookings=bookings.filter(b=>b.id!==id);
+  buildMyBookings();if(isMobile())buildMobileTimeline();else buildGrid();
+}
+
+function switchTab(tab){
+  const isUp=tab==='upcoming';
+  document.getElementById('tab-upcoming').style.background=isUp?'#000':'#fff';
+  document.getElementById('tab-upcoming').style.color=isUp?'#fff':'#000';
+  document.getElementById('tab-history').style.background=isUp?'#fff':'#000';
+  document.getElementById('tab-history').style.color=isUp?'#000':'#fff';
+  if(tab==='history'){document.getElementById('booking-cards').innerHTML=`<div style="text-align:center;padding:40px 24px;border:4px dashed #d1d5db;"><div style="font-size:36px;margin-bottom:10px;">📦</div><div style="font-weight:900;text-transform:uppercase;font-size:13px;">历史记录</div><div style="font-family:'Space Mono',monospace;font-size:11px;color:#888;margin-top:6px;">暂无已过期预订</div></div>`;}
+  else buildMyBookings();
+}
+
+// ===== PAGE SWITCH =====
+function showPage(page){
+  currentPage=page;
+  document.getElementById('page-calendar').style.display=page==='calendar'?'block':'none';
+  document.getElementById('page-mybookings').style.display=page==='mybookings'?'block':'none';
+  // Desktop nav
+  document.getElementById('nav-cal').style.borderBottom=page==='calendar'?'4px solid #000':'2px solid transparent';
+  document.getElementById('nav-my').style.borderBottom=page==='mybookings'?'4px solid #000':'2px solid transparent';
+  // Mobile tab bar
+  document.getElementById('tab-cal').style.background=page==='calendar'?'#000':'#fff';
+  document.getElementById('tab-cal').style.color=page==='calendar'?'#fff':'#000';
+  document.getElementById('tab-my').style.background=page==='mybookings'?'#000':'#fff';
+  document.getElementById('tab-my').style.color=page==='mybookings'?'#fff':'#000';
+  if(page==='mybookings')buildMyBookings();
+}
+
+// ===== DATE =====
+const WEEKDAYS=['周日','周一','周二','周三','周四','周五','周六'];
+function updateDate(){
+  const base=new Date(2026,3,5);
+  base.setDate(base.getDate()+dateOffset);
+  const y=base.getFullYear(),m=base.getMonth()+1,d=base.getDate(),dow=WEEKDAYS[base.getDay()];
+  document.getElementById('current-date').textContent=`${y}年${m}月${d}日 ${dow}`;
+  document.getElementById('today-badge').style.display=dateOffset===0?'inline-block':'none';
+}
+function changeDate(delta){dateOffset+=delta;updateDate();}
+function goToday(){dateOffset=0;updateDate();}
+
+// ===== INIT =====
+buildLegend();
+buildGrid();
+buildMobileRoomTabs();
+buildMobileTimeline();
+
+window.addEventListener('resize',()=>{
+  if(!isMobile()){buildGrid();}
+  else{buildMobileRoomTabs();buildMobileTimeline();}
+});
+
+// Demo: auto-open panel
+setTimeout(()=>{
+  if(!isMobile()) openPanel(rooms[2],5);
+},800);
+</script>
+</body>
+</html>

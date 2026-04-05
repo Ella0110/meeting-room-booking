@@ -177,19 +177,29 @@ WHERE roomId = $roomId
 - 左右箭头切换日期；右上角日/周视图切换
 
 **视觉设计规范**
-- 色彩风格：多巴胺配色，纯白底 + 四色渐变房间标签
-- 房间颜色：每个房间分配专属渐变色（橙 / 粉 / 紫 / 绿，依此循环）
-- 暗色模式：深黑底（#0d0d14），房间标签保留专属颜色描边
-- 日/夜切换：全局主题切换，跟随系统设置或手动切换
-- 圆角：较大圆角（8px），卡片感强
-- 整体风格：简洁大方，操作便捷
+
+采用 **Neo-Brutalist Playful（俏皮野兽派）** 设计语言，参考样式文件：`docs/superpowers/specs/neo-brutalist-playful-hard-prompt.md`，UI 预览：`docs/superpowers/specs/neo-brutalist-booking-ui.html`。
+
+- 色彩风格：纯白底 + 五色纯色房间标签（无渐变）
+- 房间颜色：每个房间分配专属纯色（依此循环）
+  - 珊瑚厅 `#FFBE0B` · 极光厅 `#FF006E` · 星云厅 `#8338EC` · 翡翠厅 `#06D6A0` · 烈焰厅 `#FB5607`
+- 边框：`4px solid #000`，全局无圆角（`border-radius: 0`）
+- 阴影：硬位移阴影 `box-shadow: 6px 6px 0 0 #000`（或房间专属色），禁止模糊阴影
+- 字体：标题 Space Grotesk `font-weight: 900 + uppercase`，正文 Space Mono
+- 装饰：Logo 轻微旋转 `rotate(-2deg)`，TODAY 徽标 `rotate(1deg)`，旋转金星图标
+- 空闲格子：纯白底，hover 变为 `#FFFBEB`（极淡黄）
+- 自己的预订：房间专属纯色填充 + `3px solid #000` 边框 + 硬阴影
+- 他人预订：`#d1d5db` 灰色块，不显示标题
+- 封锁时段：`-45deg` 斜线条纹（灰色），不可点击
+- 暗色模式：暂不支持
 
 **CSS 动效规范**
-- 侧边面板：滑入/滑出过渡（transform + transition，200ms ease）
-- 格子 hover：轻微放大 + 阴影（scale 1.02，100ms）
-- 预订成功：格子从空闲色平滑过渡到专属颜色（300ms）
-- 日期切换：内容淡入淡出（opacity，150ms）
-- 页面路由切换：淡入（opacity，120ms）
+- 右侧面板（桌面）：`transform: translateX(100%) → 0`，`250ms cubic-bezier(.25,.46,.45,.94)`
+- 底部抽屉（移动端）：`transform: translateY(100%) → 0`，`280ms cubic-bezier(.25,.46,.45,.94)`
+- 按钮 hover：`box-shadow` 消失 + `translate(3px, 3px)`，`150ms`
+- 按钮 active：`translate(5px, 5px)`
+- 格子 hover：背景色切换 `100ms`，不缩放（野兽派风格保持硬朗）
+- 预订成功：格子闪烁绿色 `#06D6A0`，`400ms`
 - 加载状态：骨架屏（Skeleton），避免空白闪烁
 - 原则：所有动效 ≤ 300ms，不影响操作流畅感
 

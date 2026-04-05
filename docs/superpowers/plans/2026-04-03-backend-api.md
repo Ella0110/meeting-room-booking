@@ -1020,7 +1020,7 @@ git commit -m "feat: invite flow (send invite + accept invite)"
 **Files:**
 - Modify: `server/src/controllers/auth.controller.ts` (forgotPassword + resetPassword)
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```typescript
 // Add to server/tests/auth.test.ts
@@ -1081,7 +1081,7 @@ describe('Password reset flow', () => {
 })
 ```
 
-- [ ] **Step 2: Run — verify fail**
+- [x] **Step 2: Run — verify fail**
 
 ```bash
 cd server && npm test -- tests/auth.test.ts
@@ -1089,7 +1089,7 @@ cd server && npm test -- tests/auth.test.ts
 
 Expected: password reset tests FAIL.
 
-- [ ] **Step 3: Implement forgotPassword and resetPassword**
+- [x] **Step 3: Implement forgotPassword and resetPassword**
 
 ```typescript
 // Replace stubs in server/src/controllers/auth.controller.ts
@@ -1138,7 +1138,7 @@ export async function resetPassword(req: Request, res: Response, next: NextFunct
 }
 ```
 
-- [ ] **Step 4: Run tests — all auth tests pass**
+- [x] **Step 4: Run tests — all auth tests pass**
 
 ```bash
 cd server && npm test -- tests/auth.test.ts
@@ -1146,7 +1146,7 @@ cd server && npm test -- tests/auth.test.ts
 
 Expected: all PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add server/src/controllers/auth.controller.ts
