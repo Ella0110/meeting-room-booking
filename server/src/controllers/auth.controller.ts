@@ -19,6 +19,9 @@ const loginSchema = z.object({
   password: z.string().min(1),
 })
 
+const forgotSchema = z.object({ email: z.string().email() })
+const resetSchema = z.object({ token: z.string(), newPassword: z.string().min(8) })
+
 const acceptInviteSchema = z.object({
   token: z.string().uuid(),
   name: z.string().min(1),
@@ -79,10 +82,41 @@ export async function acceptInvite(req: Request, res: Response, next: NextFuncti
   }
 }
 
-// Stubs — implemented in Task 6
-export async function forgotPassword(_req: Request, res: Response, _next: NextFunction) {
-  res.status(501).json({ error: 'Not implemented' })
+export async function forgotPassword(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { email } = forgotSchema.parse(req.body)
+    const user = await prisma.user.findUnique({ where: { email } })
+    if (user && user.isActive) {
+      const token = crypto.randomBytes(32).toString('hex')
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { resetToken: token, resetTokenExpiresAt: new Date(Date.now() + 60 * 60 * 1000) },
+      })
+      await sendPasswordResetEmail(email, token)
+    }
+    res.json({ ok: true })
+  } catch (err) {
+    if (err instanceof z.ZodError) { res.status(422).json({ error: err.errors }); return }
+    next(err)
+  }
 }
-export async function resetPassword(_req: Request, res: Response, _next: NextFunction) {
-  res.status(501).json({ error: 'Not implemented' })
+
+export async function resetPassword(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { token, newPassword } = resetSchema.parse(req.body)
+    const user = await prisma.user.findFirst({
+      where: { resetToken: token, resetTokenExpiresAt: { gt: new Date() } },
+    })
+    if (!user) throw new AppError(400, 'Invalid or expired reset token')
+
+    const passwordHash = await bcrypt.hash(newPassword, 12)
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash, resetToken: null, resetTokenExpiresAt: null },
+    })
+    res.json({ ok: true })
+  } catch (err) {
+    if (err instanceof z.ZodError) { res.status(422).json({ error: err.errors }); return }
+    next(err)
+  }
 }

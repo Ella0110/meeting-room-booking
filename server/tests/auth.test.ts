@@ -114,3 +114,54 @@ describe('POST /api/admin/invitations + POST /api/auth/accept-invite', () => {
     expect(res.status).toBe(403)
   })
 })
+
+describe('Password reset flow', () => {
+  beforeEach(clearDatabase)
+
+  it('forgot-password accepts any email silently (no user enumeration)', async () => {
+    const res = await request(app)
+      .post('/api/auth/forgot-password')
+      .send({ email: 'notexist@test.com' })
+    expect(res.status).toBe(200)
+  })
+
+  it('reset-password updates password with valid token', async () => {
+    const { prisma: db } = await import('../src/lib/prisma')
+    const user = await createUser({ email: 'reset@test.com' })
+
+    await request(app)
+      .post('/api/auth/forgot-password')
+      .send({ email: 'reset@test.com' })
+
+    const refreshed = await db.user.findUnique({ where: { id: user.id } })
+    expect(refreshed!.resetToken).not.toBeNull()
+
+    const res = await request(app)
+      .post('/api/auth/reset-password')
+      .send({ token: refreshed!.resetToken, newPassword: 'NewSecure999!' })
+    expect(res.status).toBe(200)
+
+    const loginOld = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'reset@test.com', password: 'Password123!' })
+    expect(loginOld.status).toBe(401)
+
+    const loginNew = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'reset@test.com', password: 'NewSecure999!' })
+    expect(loginNew.status).toBe(200)
+  })
+
+  it('reset-password returns 400 for expired token', async () => {
+    const { prisma: db } = await import('../src/lib/prisma')
+    const user = await createUser()
+    await db.user.update({
+      where: { id: user.id },
+      data: { resetToken: 'expired-token', resetTokenExpiresAt: new Date(Date.now() - 1000) },
+    })
+    const res = await request(app)
+      .post('/api/auth/reset-password')
+      .send({ token: 'expired-token', newPassword: 'NewPass999!' })
+    expect(res.status).toBe(400)
+  })
+})
