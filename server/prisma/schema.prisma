@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String       @id @default(uuid())
+  name                 String
+  email                String       @unique
+  passwordHash         String
+  role                 Role         @default(USER)
+  isActive             Boolean      @default(true)
+  resetToken           String?      @unique
+  resetTokenExpiresAt  DateTime?
+  createdAt            DateTime     @default(now())
+  bookings             Booking[]
+  blockedSlots         BlockedSlot[]
+  invitations          Invitation[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Room {
+  id           String        @id @default(uuid())
+  name         String
+  capacity     Int
+  location     String?
+  description  String?
+  zone         Zone
+  isActive     Boolean       @default(true)
+  bookings     Booking[]
+  blockedSlots BlockedSlot[]
+}
+
+enum Zone {
+  OFFICE
+  SHARED
+}
+
+model Booking {
+  id        String        @id @default(uuid())
+  userId    String
+  roomId    String
+  title     String
+  startTime DateTime
+  endTime   DateTime
+  status    BookingStatus @default(CONFIRMED)
+  createdAt DateTime      @default(now())
+  user      User          @relation(fields: [userId], references: [id])
+  room      Room          @relation(fields: [roomId], references: [id])
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+model BlockedSlot {
+  id        String   @id @default(uuid())
+  roomId    String
+  reason    String
+  startTime DateTime
+  endTime   DateTime
+  createdBy String
+  room      Room     @relation(fields: [roomId], references: [id])
+  creator   User     @relation(fields: [createdBy], references: [id])
+}
+
+model Invitation {
+  id        String    @id @default(uuid())
+  email     String
+  token     String    @unique @default(uuid())
+  invitedBy String
+  expiresAt DateTime
+  usedAt    DateTime?
+  inviter   User      @relation(fields: [invitedBy], references: [id])
+}

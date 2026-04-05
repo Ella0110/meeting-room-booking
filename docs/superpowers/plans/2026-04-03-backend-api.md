@@ -537,7 +537,7 @@ git commit -m "feat: express app scaffold with middleware and JWT helpers"
 - Create: `server/src/controllers/auth.controller.ts` (login + logout portions)
 - Create: `server/src/routes/auth.ts` (login + logout portions)
 
-- [ ] **Step 1: Create test helpers**
+- [x] **Step 1: Create test helpers**
 
 ```typescript
 // server/tests/helpers.ts
@@ -607,7 +607,7 @@ DATABASE_URL=postgresql://postgres:password@localhost:5432/booking_app_test \
   npx prisma migrate deploy --schema server/prisma/schema.prisma
 ```
 
-- [ ] **Step 2: Write failing login tests**
+- [x] **Step 2: Write failing login tests**
 
 ```typescript
 // server/tests/auth.test.ts
@@ -666,7 +666,7 @@ describe('POST /api/auth/logout', () => {
 })
 ```
 
-- [ ] **Step 3: Run tests — verify they fail**
+- [x] **Step 3: Run tests — verify they fail**
 
 ```bash
 cd server && npm test -- tests/auth.test.ts
@@ -674,7 +674,7 @@ cd server && npm test -- tests/auth.test.ts
 
 Expected: FAIL — routes not yet defined.
 
-- [ ] **Step 4: Implement login & logout routes**
+- [x] **Step 4: Implement login & logout routes**
 
 ```typescript
 // server/src/routes/auth.ts
@@ -753,7 +753,7 @@ export async function acceptInvite(_req: Request, res: Response, _next: NextFunc
 }
 ```
 
-- [ ] **Step 5: Run login tests — verify they pass**
+- [x] **Step 5: Run login tests — verify they pass**
 
 ```bash
 cd server && npm test -- tests/auth.test.ts
@@ -761,7 +761,7 @@ cd server && npm test -- tests/auth.test.ts
 
 Expected: all 5 tests PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/src/ server/tests/
@@ -778,7 +778,7 @@ git commit -m "feat: auth login and logout endpoints with tests"
 - Create: `server/src/routes/admin.ts` (invite endpoint only)
 - Create: `server/src/controllers/admin.controller.ts` (sendInvite only)
 
-- [ ] **Step 1: Create email service**
+- [x] **Step 1: Create email service**
 
 ```typescript
 // server/src/services/email.service.ts
@@ -816,7 +816,7 @@ export async function sendPasswordResetEmail(to: string, token: string) {
 }
 ```
 
-- [ ] **Step 2: Write failing invite tests**
+- [x] **Step 2: Write failing invite tests**
 
 ```typescript
 // Add to server/tests/auth.test.ts
@@ -877,7 +877,7 @@ describe('POST /api/admin/invitations + POST /api/auth/accept-invite', () => {
 })
 ```
 
-- [ ] **Step 3: Run — verify fail**
+- [x] **Step 3: Run — verify fail**
 
 ```bash
 cd server && npm test -- tests/auth.test.ts
@@ -885,7 +885,7 @@ cd server && npm test -- tests/auth.test.ts
 
 Expected: FAIL on invite tests.
 
-- [ ] **Step 4: Implement sendInvite (admin) and acceptInvite**
+- [x] **Step 4: Implement sendInvite (admin) and acceptInvite**
 
 ```typescript
 // server/src/routes/admin.ts
@@ -998,7 +998,7 @@ export async function acceptInvite(req: Request, res: Response, next: NextFuncti
 }
 ```
 
-- [ ] **Step 5: Run tests — verify pass**
+- [x] **Step 5: Run tests — verify pass**
 
 ```bash
 cd server && npm test -- tests/auth.test.ts
@@ -1006,7 +1006,7 @@ cd server && npm test -- tests/auth.test.ts
 
 Expected: all tests PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/src/ server/tests/
@@ -1161,7 +1161,7 @@ git commit -m "feat: password reset flow"
 - Create: `server/src/routes/rooms.ts`
 - Create: `server/src/controllers/rooms.controller.ts`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```typescript
 // server/tests/auth.test.ts — add a new file server/tests/rooms.test.ts
@@ -1233,7 +1233,7 @@ describe('Admin room CRUD', () => {
 })
 ```
 
-- [ ] **Step 2: Run — verify fail**
+- [x] **Step 2: Run — verify fail**
 
 ```bash
 cd server && npm test -- tests/rooms.test.ts
@@ -1241,7 +1241,7 @@ cd server && npm test -- tests/rooms.test.ts
 
 Expected: FAIL.
 
-- [ ] **Step 3: Implement rooms routes and controller**
+- [x] **Step 3: Implement rooms routes and controller**
 
 ```typescript
 // server/src/routes/rooms.ts
@@ -1320,7 +1320,7 @@ export async function deleteRoom(req: Request, res: Response, next: NextFunction
 }
 ```
 
-- [ ] **Step 4: Run tests — verify pass**
+- [x] **Step 4: Run tests — verify pass**
 
 ```bash
 cd server && npm test -- tests/rooms.test.ts
@@ -1328,7 +1328,7 @@ cd server && npm test -- tests/rooms.test.ts
 
 Expected: all PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add server/src/ server/tests/rooms.test.ts
@@ -1344,7 +1344,7 @@ git commit -m "feat: rooms API (list + admin CRUD)"
 
 This is the most critical task. All booking rules are validated here in a single transaction.
 
-- [ ] **Step 1: Write failing business rule tests**
+- [x] **Step 1: Write failing business rule tests**
 
 ```typescript
 // server/tests/bookings.test.ts
@@ -1475,7 +1475,7 @@ describe('POST /api/bookings — business rules', () => {
 })
 ```
 
-- [ ] **Step 2: Run — verify fail**
+- [x] **Step 2: Run — verify fail**
 
 ```bash
 cd server && npm test -- tests/bookings.test.ts
@@ -1483,7 +1483,7 @@ cd server && npm test -- tests/bookings.test.ts
 
 Expected: FAIL — routes not defined.
 
-- [ ] **Step 3: Implement booking.service.ts**
+- [x] **Step 3: Implement booking.service.ts**
 
 ```typescript
 // server/src/services/booking.service.ts
@@ -1592,7 +1592,7 @@ export async function cancelBooking(bookingId: string, requestingUserId: string,
 }
 ```
 
-- [ ] **Step 4: Run — verify business rule tests pass**
+- [x] **Step 4: Run — verify business rule tests pass**
 
 ```bash
 cd server && npm test -- tests/bookings.test.ts
@@ -1600,7 +1600,7 @@ cd server && npm test -- tests/bookings.test.ts
 
 Expected: the business rule tests pass once we add the routes in the next task.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/src/services/booking.service.ts server/tests/bookings.test.ts
@@ -1615,7 +1615,7 @@ git commit -m "feat: booking business rules service with transaction locking"
 - Create: `server/src/routes/bookings.ts`
 - Create: `server/src/controllers/bookings.controller.ts`
 
-- [ ] **Step 1: Implement routes and controller**
+- [x] **Step 1: Implement routes and controller**
 
 ```typescript
 // server/src/routes/bookings.ts
@@ -1719,7 +1719,7 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
 }
 ```
 
-- [ ] **Step 2: Run all booking tests**
+- [x] **Step 2: Run all booking tests**
 
 ```bash
 cd server && npm test -- tests/bookings.test.ts
@@ -1727,7 +1727,7 @@ cd server && npm test -- tests/bookings.test.ts
 
 Expected: all PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add server/src/routes/bookings.ts server/src/controllers/bookings.controller.ts
@@ -1741,7 +1741,7 @@ git commit -m "feat: bookings API (list, my bookings, create, cancel)"
 **Files:**
 - Modify: `server/src/controllers/admin.controller.ts` (replace remaining stubs)
 
-- [ ] **Step 1: Write failing admin tests**
+- [x] **Step 1: Write failing admin tests**
 
 ```typescript
 // server/tests/admin.test.ts
@@ -1826,7 +1826,7 @@ describe('Admin: all bookings', () => {
 })
 ```
 
-- [ ] **Step 2: Run — verify fail**
+- [x] **Step 2: Run — verify fail**
 
 ```bash
 cd server && npm test -- tests/admin.test.ts
@@ -1834,7 +1834,7 @@ cd server && npm test -- tests/admin.test.ts
 
 Expected: FAIL.
 
-- [ ] **Step 3: Implement remaining admin controller stubs**
+- [x] **Step 3: Implement remaining admin controller stubs**
 
 ```typescript
 // Replace stubs in server/src/controllers/admin.controller.ts
@@ -1936,7 +1936,7 @@ Add import at top of admin.controller.ts:
 import * as bookingService from '../services/booking.service'
 ```
 
-- [ ] **Step 4: Run all tests**
+- [x] **Step 4: Run all tests**
 
 ```bash
 cd server && npm test
@@ -1944,7 +1944,7 @@ cd server && npm test
 
 Expected: all tests PASS across auth, rooms, bookings, admin test files.
 
-- [ ] **Step 5: Final commit**
+- [x] **Step 5: Final commit**
 
 ```bash
 git add server/src/controllers/admin.controller.ts server/tests/admin.test.ts
