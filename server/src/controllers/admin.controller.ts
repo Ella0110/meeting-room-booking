@@ -4,8 +4,16 @@ import { prisma } from '../lib/prisma'
 import { AppError } from '../middleware/errorHandler'
 import { sendInviteEmail } from '../services/email.service'
 import { AuthRequest } from '../middleware/authenticate'
+import * as bookingService from '../services/booking.service'
 
 const inviteSchema = z.object({ email: z.string().email() })
+
+const blockedSlotSchema = z.object({
+  roomId: z.string().uuid(),
+  reason: z.string().min(1),
+  startTime: z.string().datetime(),
+  endTime: z.string().datetime(),
+})
 
 export async function sendInvite(req: AuthRequest, res: Response, next: NextFunction) {
   try {
@@ -29,14 +37,98 @@ export async function sendInvite(req: AuthRequest, res: Response, next: NextFunc
   }
 }
 
-// Stubs — implemented in Task 10
-export const listUsers = (_r: Request, res: Response) => res.status(501).end()
-export const updateUser = (_r: Request, res: Response) => res.status(501).end()
-export const listBlockedSlots = (_r: Request, res: Response) => res.status(501).end()
-export const createBlockedSlot = (_r: Request, res: Response) => res.status(501).end()
-export const deleteBlockedSlot = (_r: Request, res: Response) => res.status(501).end()
-export const listAllBookings = (_r: Request, res: Response) => res.status(501).end()
-export const cancelAnyBooking = (_r: Request, res: Response) => res.status(501).end()
+export async function listUsers(_req: Request, res: Response, next: NextFunction) {
+  try {
+    const users = await prisma.user.findMany({
+      select: { id: true, name: true, email: true, role: true, isActive: true, createdAt: true },
+      orderBy: { createdAt: 'desc' },
+    })
+    res.json(users)
+  } catch (err) { next(err) }
+}
+
+export async function updateUser(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { isActive } = z.object({ isActive: z.boolean() }).parse(req.body)
+    const user = await prisma.user.update({
+      where: { id: req.params['id'] as string },
+      data: { isActive },
+      select: { id: true, name: true, email: true, role: true, isActive: true },
+    })
+    res.json(user)
+  } catch (err) {
+    if (err instanceof z.ZodError) { res.status(422).json({ error: err.errors }); return }
+    next(err)
+  }
+}
+
+export async function listBlockedSlots(_req: Request, res: Response, next: NextFunction) {
+  try {
+    const slots = await prisma.blockedSlot.findMany({
+      include: { room: { select: { name: true } } },
+      orderBy: { startTime: 'asc' },
+    })
+    res.json(slots)
+  } catch (err) { next(err) }
+}
+
+export async function createBlockedSlot(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const { roomId, reason, startTime, endTime } = blockedSlotSchema.parse(req.body)
+    const slot = await prisma.blockedSlot.create({
+      data: {
+        roomId,
+        reason,
+        startTime: new Date(startTime),
+        endTime: new Date(endTime),
+        createdBy: req.user!.userId,
+      },
+    })
+    res.status(201).json(slot)
+  } catch (err) {
+    if (err instanceof z.ZodError) { res.status(422).json({ error: err.errors }); return }
+    next(err)
+  }
+}
+
+export async function deleteBlockedSlot(req: Request, res: Response, next: NextFunction) {
+  try {
+    await prisma.blockedSlot.delete({ where: { id: req.params['id'] as string } })
+    res.json({ ok: true })
+  } catch (err) { next(err) }
+}
+
+export async function listAllBookings(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { date, roomId, userId } = req.query as Record<string, string | undefined>
+    const where: Record<string, unknown> = {}
+    if (date) {
+      const d = new Date(date)
+      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0)
+      const dayEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59)
+      where.startTime = { gte: dayStart, lte: dayEnd }
+    }
+    if (roomId) where.roomId = roomId
+    if (userId) where.userId = userId
+
+    const bookings = await prisma.booking.findMany({
+      where,
+      include: {
+        user: { select: { name: true, email: true } },
+        room: { select: { name: true } },
+      },
+      orderBy: { startTime: 'asc' },
+    })
+    res.json(bookings)
+  } catch (err) { next(err) }
+}
+
+export async function cancelAnyBooking(req: Request, res: Response, next: NextFunction) {
+  try {
+    const booking = await bookingService.cancelBooking(req.params['id'] as string, '', true)
+    res.json(booking)
+  } catch (err) { next(err) }
+}
 
 const roomSchema = z.object({
   name: z.string().min(1),
