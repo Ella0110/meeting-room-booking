@@ -51,3 +51,66 @@ describe('POST /api/auth/logout', () => {
     expect(res.headers['set-cookie'][0]).toContain('token=;')
   })
 })
+
+describe('POST /api/admin/invitations + POST /api/auth/accept-invite', () => {
+  beforeEach(clearDatabase)
+
+  it('admin can send invite and user can accept it', async () => {
+    await createUser({ role: 'ADMIN', email: 'admin@test.com' })
+    const { prisma: db } = await import('../src/lib/prisma')
+
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'admin@test.com', password: 'Password123!' })
+    const cookie = loginRes.headers['set-cookie'][0]
+
+    const inviteRes = await request(app)
+      .post('/api/admin/invitations')
+      .set('Cookie', cookie)
+      .send({ email: 'newuser@test.com' })
+    expect(inviteRes.status).toBe(201)
+
+    const inv = await db.invitation.findFirst({ where: { email: 'newuser@test.com' } })
+    expect(inv).not.toBeNull()
+
+    const acceptRes = await request(app)
+      .post('/api/auth/accept-invite')
+      .send({ token: inv!.token, name: 'New User', password: 'NewPass123!' })
+    expect(acceptRes.status).toBe(201)
+    expect(acceptRes.headers['set-cookie'][0]).toContain('token=')
+
+    const used = await db.invitation.findUnique({ where: { id: inv!.id } })
+    expect(used!.usedAt).not.toBeNull()
+  })
+
+  it('returns 400 if invite token is expired', async () => {
+    const admin = await createUser({ role: 'ADMIN' })
+    const { prisma: db } = await import('../src/lib/prisma')
+    await db.invitation.create({
+      data: {
+        email: 'x@test.com',
+        invitedBy: admin.id,
+        expiresAt: new Date(Date.now() - 1000),
+      },
+    })
+    const inv = await db.invitation.findFirst({ where: { email: 'x@test.com' } })
+    const res = await request(app)
+      .post('/api/auth/accept-invite')
+      .send({ token: inv!.token, name: 'X', password: 'Pass123!' })
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 403 if non-admin tries to send invite', async () => {
+    await createUser({ email: 'regular@test.com', role: 'USER' })
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'regular@test.com', password: 'Password123!' })
+    const cookie = loginRes.headers['set-cookie'][0]
+
+    const res = await request(app)
+      .post('/api/admin/invitations')
+      .set('Cookie', cookie)
+      .send({ email: 'target@test.com' })
+    expect(res.status).toBe(403)
+  })
+})
