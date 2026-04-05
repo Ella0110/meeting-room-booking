@@ -32,12 +32,52 @@ export async function sendInvite(req: AuthRequest, res: Response, next: NextFunc
 // Stubs — implemented in Task 10
 export const listUsers = (_r: Request, res: Response) => res.status(501).end()
 export const updateUser = (_r: Request, res: Response) => res.status(501).end()
-export const listRooms = (_r: Request, res: Response) => res.status(501).end()
-export const createRoom = (_r: Request, res: Response) => res.status(501).end()
-export const updateRoom = (_r: Request, res: Response) => res.status(501).end()
-export const deleteRoom = (_r: Request, res: Response) => res.status(501).end()
 export const listBlockedSlots = (_r: Request, res: Response) => res.status(501).end()
 export const createBlockedSlot = (_r: Request, res: Response) => res.status(501).end()
 export const deleteBlockedSlot = (_r: Request, res: Response) => res.status(501).end()
 export const listAllBookings = (_r: Request, res: Response) => res.status(501).end()
 export const cancelAnyBooking = (_r: Request, res: Response) => res.status(501).end()
+
+const roomSchema = z.object({
+  name: z.string().min(1),
+  capacity: z.number().int().positive(),
+  zone: z.enum(['OFFICE', 'SHARED']),
+  location: z.string().optional(),
+  description: z.string().optional(),
+})
+
+export async function listRooms(_req: Request, res: Response, next: NextFunction) {
+  try {
+    const rooms = await prisma.room.findMany({ orderBy: { name: 'asc' } })
+    res.json(rooms)
+  } catch (err) { next(err) }
+}
+
+export async function createRoom(req: Request, res: Response, next: NextFunction) {
+  try {
+    const data = roomSchema.parse(req.body)
+    const room = await prisma.room.create({ data })
+    res.status(201).json(room)
+  } catch (err) {
+    if (err instanceof z.ZodError) { res.status(422).json({ error: err.errors }); return }
+    next(err)
+  }
+}
+
+export async function updateRoom(req: Request, res: Response, next: NextFunction) {
+  try {
+    const data = roomSchema.partial().parse(req.body)
+    const room = await prisma.room.update({ where: { id: req.params['id'] as string }, data })
+    res.json(room)
+  } catch (err) {
+    if (err instanceof z.ZodError) { res.status(422).json({ error: err.errors }); return }
+    next(err)
+  }
+}
+
+export async function deleteRoom(req: Request, res: Response, next: NextFunction) {
+  try {
+    await prisma.room.update({ where: { id: req.params['id'] as string }, data: { isActive: false } })
+    res.json({ ok: true })
+  } catch (err) { next(err) }
+}
