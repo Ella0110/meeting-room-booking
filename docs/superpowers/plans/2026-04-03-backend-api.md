@@ -189,7 +189,7 @@ git commit -m "feat: monorepo scaffold with server workspace"
 - Create: `server/prisma/seed.ts`
 - Create: `server/src/lib/prisma.ts`
 
-- [ ] **Step 1: Write schema.prisma**
+- [x] **Step 1: Write schema.prisma**
 
 ```prisma
 // server/prisma/schema.prisma
@@ -279,7 +279,7 @@ model Invitation {
 }
 ```
 
-- [ ] **Step 2: Create the databases and run migration**
+- [x] **Step 2: Create the databases and run migration**
 
 ```bash
 # Create both databases first (run in psql or pgAdmin)
@@ -294,7 +294,7 @@ cd server && npx prisma migrate dev --name init
 
 Expected: `server/prisma/migrations/` created, Prisma client generated.
 
-- [ ] **Step 3: Create Prisma singleton**
+- [x] **Step 3: Create Prisma singleton**
 
 ```typescript
 // server/src/lib/prisma.ts
@@ -313,7 +313,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 ```
 
-- [ ] **Step 4: Write seed.ts with one admin + two rooms**
+- [x] **Step 4: Write seed.ts with one admin + two rooms**
 
 ```typescript
 // server/prisma/seed.ts
@@ -346,7 +346,7 @@ async function main() {
 main().catch(console.error).finally(() => prisma.$disconnect())
 ```
 
-- [ ] **Step 5: Run seed**
+- [x] **Step 5: Run seed**
 
 ```bash
 cd server && npm run db:seed
@@ -354,7 +354,7 @@ cd server && npm run db:seed
 
 Expected: `Seeded admin: admin@company.com`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add server/prisma/ server/src/lib/prisma.ts
@@ -374,7 +374,7 @@ git commit -m "feat: prisma schema, migration, and seed data"
 - Create: `server/src/app.ts`
 - Create: `server/src/index.ts`
 
-- [ ] **Step 1: Create JWT helpers**
+- [x] **Step 1: Create JWT helpers**
 
 ```typescript
 // server/src/lib/jwt.ts
@@ -398,7 +398,7 @@ export function verifyToken(token: string): JwtPayload {
 }
 ```
 
-- [ ] **Step 2: Create authenticate middleware**
+- [x] **Step 2: Create authenticate middleware**
 
 ```typescript
 // server/src/middleware/authenticate.ts
@@ -424,7 +424,7 @@ export function authenticate(req: AuthRequest, res: Response, next: NextFunction
 }
 ```
 
-- [ ] **Step 3: Create requireAdmin + errorHandler**
+- [x] **Step 3: Create requireAdmin + errorHandler**
 
 ```typescript
 // server/src/middleware/requireAdmin.ts
@@ -460,7 +460,7 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
 }
 ```
 
-- [ ] **Step 4: Create rateLimiter**
+- [x] **Step 4: Create rateLimiter**
 
 ```typescript
 // server/src/middleware/rateLimiter.ts
@@ -475,7 +475,7 @@ export const bookingLimiter = rateLimit({
 })
 ```
 
-- [ ] **Step 5: Create app factory**
+- [x] **Step 5: Create app factory**
 
 ```typescript
 // server/src/app.ts
@@ -512,7 +512,7 @@ createApp().listen(PORT, () => {
 })
 ```
 
-- [ ] **Step 6: Verify app starts**
+- [x] **Step 6: Verify app starts**
 
 ```bash
 cd server && npm run dev
@@ -520,7 +520,7 @@ cd server && npm run dev
 
 Expected: `Server running on http://localhost:3000` (routes will return 404 until controllers are added — that's fine).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add server/src/
