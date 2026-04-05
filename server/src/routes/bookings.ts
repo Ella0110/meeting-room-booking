@@ -1,3 +1,12 @@
 import { Router } from 'express'
+import { authenticate } from '../middleware/authenticate'
+import { bookingLimiter } from '../middleware/rateLimiter'
+import * as bookings from '../controllers/bookings.controller'
+
 const router = Router()
+router.use(authenticate)
+router.get('/', bookings.listBookings)
+router.get('/mine', bookings.myBookings)
+router.post('/', bookingLimiter, bookings.createBooking)
+router.delete('/:id', bookings.cancelBooking)
 export default router

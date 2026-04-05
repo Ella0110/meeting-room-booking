@@ -1,0 +1,121 @@
+import { describe, it, expect, beforeEach } from 'vitest'
+import request from 'supertest'
+import { createApp } from '../src/app'
+import { clearDatabase, createUser, createRoom } from './helpers'
+import { prisma } from '../src/lib/prisma'
+
+const app = createApp()
+
+async function bookAs(cookie: string, body: object) {
+  return request(app).post('/api/bookings').set('Cookie', cookie).send(body)
+}
+
+function nextWeekday(hour: number, minute = 0): Date {
+  const d = new Date()
+  d.setDate(d.getDate() + 1)
+  while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1)
+  d.setHours(hour, minute, 0, 0)
+  return d
+}
+
+describe('POST /api/bookings — business rules', () => {
+  let cookie: string
+  let officeRoom: { id: string }
+  let sharedRoom: { id: string }
+
+  beforeEach(async () => {
+    await clearDatabase()
+    await createUser({ email: 'u@test.com' })
+    officeRoom = await createRoom({ zone: 'OFFICE', name: 'Office 101' })
+    sharedRoom = await createRoom({ zone: 'SHARED', name: 'Shared A' })
+
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'u@test.com', password: 'Password123!' })
+    cookie = loginRes.headers['set-cookie'][0]
+  })
+
+  it('creates a valid booking', async () => {
+    const start = nextWeekday(10, 0)
+    const end = new Date(start.getTime() + 60 * 60 * 1000)
+
+    const res = await bookAs(cookie, {
+      roomId: officeRoom.id,
+      title: 'Team Meeting',
+      startTime: start.toISOString(),
+      endTime: end.toISOString(),
+    })
+    expect(res.status).toBe(201)
+    expect(res.body).toMatchObject({ title: 'Team Meeting', status: 'CONFIRMED' })
+  })
+
+  it('rejects duration < 30 minutes', async () => {
+    const start = nextWeekday(10, 0)
+    const end = new Date(start.getTime() + 20 * 60 * 1000)
+    const res = await bookAs(cookie, { roomId: officeRoom.id, title: 'X', startTime: start.toISOString(), endTime: end.toISOString() })
+    expect(res.status).toBe(422)
+    expect(res.body.error).toMatch(/30 分钟/)
+  })
+
+  it('rejects duration > 4 hours', async () => {
+    const start = nextWeekday(9, 0)
+    const end = new Date(start.getTime() + 5 * 60 * 60 * 1000)
+    const res = await bookAs(cookie, { roomId: officeRoom.id, title: 'X', startTime: start.toISOString(), endTime: end.toISOString() })
+    expect(res.status).toBe(422)
+    expect(res.body.error).toMatch(/4 小时/)
+  })
+
+  it('rejects non-:00/:30 start time', async () => {
+    const start = nextWeekday(10, 15)
+    const end = new Date(start.getTime() + 60 * 60 * 1000)
+    const res = await bookAs(cookie, { roomId: officeRoom.id, title: 'X', startTime: start.toISOString(), endTime: end.toISOString() })
+    expect(res.status).toBe(422)
+  })
+
+  it('rejects booking > 7 days ahead', async () => {
+    const start = new Date()
+    start.setDate(start.getDate() + 8)
+    start.setHours(10, 0, 0, 0)
+    const end = new Date(start.getTime() + 60 * 60 * 1000)
+    const res = await bookAs(cookie, { roomId: officeRoom.id, title: 'X', startTime: start.toISOString(), endTime: end.toISOString() })
+    expect(res.status).toBe(422)
+  })
+
+  it('rejects OFFICE room on weekend', async () => {
+    const start = new Date()
+    while (start.getDay() !== 6) start.setDate(start.getDate() + 1)
+    start.setHours(10, 0, 0, 0)
+    const end = new Date(start.getTime() + 60 * 60 * 1000)
+    const res = await bookAs(cookie, { roomId: officeRoom.id, title: 'X', startTime: start.toISOString(), endTime: end.toISOString() })
+    expect(res.status).toBe(422)
+    expect(res.body.error).toMatch(/工作日/)
+  })
+
+  it('rejects SHARED room outside 09:00–18:00', async () => {
+    const start = nextWeekday(8, 0)
+    const end = new Date(start.getTime() + 60 * 60 * 1000)
+    const res = await bookAs(cookie, { roomId: sharedRoom.id, title: 'X', startTime: start.toISOString(), endTime: end.toISOString() })
+    expect(res.status).toBe(422)
+    expect(res.body.error).toMatch(/09:00/)
+  })
+
+  it('rejects conflicting booking for same room', async () => {
+    const start = nextWeekday(10, 0)
+    const end = new Date(start.getTime() + 60 * 60 * 1000)
+    await bookAs(cookie, { roomId: officeRoom.id, title: 'First', startTime: start.toISOString(), endTime: end.toISOString() })
+
+    const res = await bookAs(cookie, { roomId: officeRoom.id, title: 'Second', startTime: start.toISOString(), endTime: end.toISOString() })
+    expect(res.status).toBe(409)
+    expect(res.body.error).toMatch(/冲突/)
+  })
+
+  it('rejects double-booking same user different rooms', async () => {
+    const start = nextWeekday(10, 0)
+    const end = new Date(start.getTime() + 60 * 60 * 1000)
+    await bookAs(cookie, { roomId: officeRoom.id, title: 'First', startTime: start.toISOString(), endTime: end.toISOString() })
+
+    const res = await bookAs(cookie, { roomId: sharedRoom.id, title: 'Overlap', startTime: start.toISOString(), endTime: end.toISOString() })
+    expect(res.status).toBe(409)
+    expect(res.body.error).toMatch(/已有其他预订/)
+  })
+})
