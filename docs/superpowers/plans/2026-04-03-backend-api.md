@@ -1741,7 +1741,7 @@ git commit -m "feat: bookings API (list, my bookings, create, cancel)"
 **Files:**
 - Modify: `server/src/controllers/admin.controller.ts` (replace remaining stubs)
 
-- [ ] **Step 1: Write failing admin tests**
+- [x] **Step 1: Write failing admin tests**
 
 ```typescript
 // server/tests/admin.test.ts
@@ -1826,7 +1826,7 @@ describe('Admin: all bookings', () => {
 })
 ```
 
-- [ ] **Step 2: Run — verify fail**
+- [x] **Step 2: Run — verify fail**
 
 ```bash
 cd server && npm test -- tests/admin.test.ts
@@ -1834,7 +1834,7 @@ cd server && npm test -- tests/admin.test.ts
 
 Expected: FAIL.
 
-- [ ] **Step 3: Implement remaining admin controller stubs**
+- [x] **Step 3: Implement remaining admin controller stubs**
 
 ```typescript
 // Replace stubs in server/src/controllers/admin.controller.ts
@@ -1936,7 +1936,7 @@ Add import at top of admin.controller.ts:
 import * as bookingService from '../services/booking.service'
 ```
 
-- [ ] **Step 4: Run all tests**
+- [x] **Step 4: Run all tests**
 
 ```bash
 cd server && npm test
@@ -1944,7 +1944,7 @@ cd server && npm test
 
 Expected: all tests PASS across auth, rooms, bookings, admin test files.
 
-- [ ] **Step 5: Final commit**
+- [x] **Step 5: Final commit**
 
 ```bash
 git add server/src/controllers/admin.controller.ts server/tests/admin.test.ts
