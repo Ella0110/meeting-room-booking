@@ -9,5 +9,6 @@ export default defineConfig({
       NODE_ENV: 'test',
     },
     sequence: { concurrent: false },
+    fileParallelism: false,
   },
 })
