@@ -67,7 +67,7 @@ export async function createRoom(req: Request, res: Response, next: NextFunction
 export async function updateRoom(req: Request, res: Response, next: NextFunction) {
   try {
     const data = roomSchema.partial().parse(req.body)
-    const room = await prisma.room.update({ where: { id: req.params['id'] as string }, data })
+    const room = await prisma.room.update({ where: { id: req.params.id }, data })
     res.json(room)
   } catch (err) {
     if (err instanceof z.ZodError) { res.status(422).json({ error: err.errors }); return }
@@ -77,7 +77,7 @@ export async function updateRoom(req: Request, res: Response, next: NextFunction
 
 export async function deleteRoom(req: Request, res: Response, next: NextFunction) {
   try {
-    await prisma.room.update({ where: { id: req.params['id'] as string }, data: { isActive: false } })
+    await prisma.room.update({ where: { id: req.params.id }, data: { isActive: false } })
     res.json({ ok: true })
   } catch (err) { next(err) }
 }
