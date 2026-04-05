@@ -21,6 +21,7 @@ describe('Admin: users', () => {
     const res = await request(app).get('/api/admin/users').set('Cookie', cookie)
     expect(res.status).toBe(200)
     expect(res.body.length).toBeGreaterThanOrEqual(2)
+    expect(res.body[0]).not.toHaveProperty('passwordHash')
   })
 
   it('deactivates a user', async () => {

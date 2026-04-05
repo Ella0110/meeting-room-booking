@@ -123,9 +123,9 @@ export async function listAllBookings(req: Request, res: Response, next: NextFun
   } catch (err) { next(err) }
 }
 
-export async function cancelAnyBooking(req: Request, res: Response, next: NextFunction) {
+export async function cancelAnyBooking(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const booking = await bookingService.cancelBooking(req.params['id'] as string, '', true)
+    const booking = await bookingService.cancelBooking(req.params.id, req.user!.userId, true)
     res.json(booking)
   } catch (err) { next(err) }
 }
