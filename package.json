@@ -4,6 +4,12 @@
   "workspaces": ["server", "client"],
   "scripts": {
     "dev:server": "npm run dev --workspace=server",
-    "test:server": "npm run test --workspace=server"
+    "dev:client": "npm run dev --workspace=client",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "test:server": "npm run test --workspace=server",
+    "test:client": "npm run test --workspace=client"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
   }
 }
