@@ -79,3 +79,22 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
     res.json(booking)
   } catch (err) { next(err) }
 }
+
+export async function listBlockedSlots(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const { date } = req.query as { date?: string }
+    const where: Record<string, unknown> = {}
+    if (date) {
+      const d = new Date(date)
+      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0)
+      const dayEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59)
+      where.startTime = { gte: dayStart, lte: dayEnd }
+    }
+    const slots = await prisma.blockedSlot.findMany({
+      where,
+      select: { id: true, roomId: true, reason: true, startTime: true, endTime: true },
+      orderBy: { startTime: 'asc' },
+    })
+    res.json(slots)
+  } catch (err) { next(err) }
+}

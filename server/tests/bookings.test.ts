@@ -119,3 +119,49 @@ describe('POST /api/bookings — business rules', () => {
     expect(res.body.error).toMatch(/已有其他预订/)
   })
 })
+
+describe('GET /api/bookings/blocked-slots', () => {
+  let cookie: string
+  let room: { id: string }
+
+  beforeEach(async () => {
+    await clearDatabase()
+    const user = await createUser({ email: 'u2@test.com' })
+    const adminUser = await createUser({ email: 'admin@test.com', role: 'ADMIN' })
+    room = await createRoom({ name: 'Blocked Room' })
+
+    await prisma.blockedSlot.create({
+      data: {
+        roomId: room.id,
+        reason: 'Maintenance',
+        startTime: new Date('2026-04-10T10:00:00.000Z'),
+        endTime: new Date('2026-04-10T12:00:00.000Z'),
+        createdBy: adminUser.id,
+      },
+    })
+
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'u2@test.com', password: 'Password123!' })
+    cookie = loginRes.headers['set-cookie'][0]
+  })
+
+  it('returns blocked slots for a given date (authenticated user)', async () => {
+    const res = await request(app)
+      .get('/api/bookings/blocked-slots?date=2026-04-10')
+      .set('Cookie', cookie)
+    expect(res.status).toBe(200)
+    expect(Array.isArray(res.body)).toBe(true)
+    expect(res.body).toHaveLength(1)
+    expect(res.body[0]).toMatchObject({
+      roomId: room.id,
+      reason: 'Maintenance',
+    })
+    expect(res.body[0]).not.toHaveProperty('createdBy')
+  })
+
+  it('returns 401 without auth', async () => {
+    const res = await request(app).get('/api/bookings/blocked-slots?date=2026-04-10')
+    expect(res.status).toBe(401)
+  })
+})

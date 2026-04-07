@@ -5,6 +5,7 @@ import * as bookings from '../controllers/bookings.controller'
 
 const router = Router()
 router.use(authenticate)
+router.get('/blocked-slots', bookings.listBlockedSlots)
 router.get('/', bookings.listBookings)
 router.get('/mine', bookings.myBookings)
 router.post('/', bookingLimiter, bookings.createBooking)
