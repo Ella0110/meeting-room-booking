@@ -42,12 +42,12 @@ describe('CalendarPage', () => {
 
   it('renders room name after loading', async () => {
     render(<CalendarPage />, { wrapper })
-    await waitFor(() => expect(screen.getByText('珊瑚厅')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getAllByText('珊瑚厅').length).toBeGreaterThan(0))
   })
 
   it('shows booking panel when a cell is clicked', async () => {
     render(<CalendarPage />, { wrapper })
-    await waitFor(() => screen.getByText('珊瑚厅'))
+    await waitFor(() => screen.getAllByText('珊瑚厅'))
     // The free cells render as buttons; click the first one
     const freeCells = screen.getAllByRole('button').filter((b) =>
       b.getAttribute('aria-label')?.startsWith('预订')
