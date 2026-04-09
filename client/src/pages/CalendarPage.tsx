@@ -23,9 +23,8 @@ export default function CalendarPage() {
   const { data: blockedSlots = [] } = useBlockedSlots(dateStr)
 
   function handleCellClick(room: Room, startTime: Date) {
-    const idx = rooms.findIndex((r) => r.id === room.id)
     setPanelRoom(room)
-    setPanelColorIndex(idx >= 0 ? idx : 0)
+    setPanelColorIndex(room.colorIndex)
     setPanelStartTime(startTime)
     setPanelOpen(true)
   }
@@ -39,9 +38,9 @@ export default function CalendarPage() {
         <div className="flex items-center gap-2.5 max-w-[1600px] mx-auto flex-nowrap">
           <span className="font-mono text-[10px] font-bold text-gray-400 uppercase whitespace-nowrap">ROOMS:</span>
           <div className="flex gap-2 flex-nowrap">
-            {rooms.map((room, i) => (
+            {rooms.map((room) => (
               <div key={room.id} className="flex items-center gap-1.5">
-                <span style={{ width: 14, height: 14, background: getRoomColor(i), border: '2px solid #000', display: 'inline-block', flexShrink: 0 }} />
+                <span style={{ width: 14, height: 14, background: getRoomColor(room.colorIndex), border: '2px solid #000', display: 'inline-block', flexShrink: 0 }} />
                 <span className="font-grotesk font-black text-[11px] whitespace-nowrap">{room.name}</span>
                 <span className="font-mono text-[9px] text-gray-400">{room.capacity}人</span>
               </div>

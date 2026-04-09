@@ -5,6 +5,7 @@ export interface Room {
   location: string | null
   description: string | null
   zone: 'OFFICE' | 'SHARED'
+  colorIndex: number
   isActive: boolean
 }
 

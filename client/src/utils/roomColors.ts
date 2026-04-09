@@ -1,6 +1,6 @@
-export const ROOM_COLORS = ['#FFBE0B', '#FF006E', '#8338EC', '#06D6A0', '#FB5607', '#3A86FF'] as const
-export const ROOM_EMOJIS = ['🪸', '🌌', '🌠', '💎', '🔥', '🌊'] as const
-export const ROOM_TEXT_COLORS = ['#000', '#fff', '#fff', '#000', '#fff', '#fff'] as const
+export const ROOM_COLORS = ['#FFBE0B', '#FF006E', '#8338EC', '#06D6A0', '#FB5607', '#3A86FF', '#00B4D8', '#C8F135'] as const
+export const ROOM_EMOJIS = ['🪸', '🌌', '🌠', '💎', '🔥', '🌊', '💧', '🌿'] as const
+export const ROOM_TEXT_COLORS = ['#000', '#fff', '#fff', '#000', '#fff', '#fff', '#000', '#000'] as const
 
 export function getRoomColor(index: number): string {
   return ROOM_COLORS[index % ROOM_COLORS.length]

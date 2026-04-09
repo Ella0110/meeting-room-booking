@@ -22,7 +22,8 @@ function getFirstSlotIdx(selectedDate: Date): number {
   const m = now.getMinutes()
   const nextWholeHour = m === 0 ? h : h + 1
   const idx = (nextWholeHour - 9) * 2 // each hour = 2 half-hour slots
-  return Math.max(0, Math.min(18, idx))
+  // Cap at 10 so at least 8 slots (10→17) are always visible when near end of day
+  return Math.max(0, Math.min(10, idx))
 }
 
 /** Build cells for one room, clipping any bookings/blocks that overlap firstSlotIdx. */
@@ -139,8 +140,8 @@ export default function CalendarGrid({
 
         {/* Room headers */}
         {rooms.map((room, rIdx) => {
-          const bg = getRoomColor(rIdx)
-          const fg = getRoomTextColor(rIdx)
+          const bg = getRoomColor(room.colorIndex)
+          const fg = getRoomTextColor(room.colorIndex)
           return (
             <div
               key={room.id}
@@ -199,7 +200,7 @@ export default function CalendarGrid({
                 key={`${room.id}-${cell.slotIdx}`}
                 cell={cell}
                 room={room}
-                colorIndex={rIdx}
+                colorIndex={room.colorIndex}
                 selectedDate={selectedDate}
                 onCellClick={onCellClick}
                 style={{ gridRow: `${gridRowStart} / span ${cell.span}`, gridColumn: rIdx + 2 }}

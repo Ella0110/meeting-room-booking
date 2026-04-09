@@ -75,16 +75,29 @@ export async function listBlockedSlots(_req: Request, res: Response, next: NextF
 export async function createBlockedSlot(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const { roomId, reason, startTime, endTime } = blockedSlotSchema.parse(req.body)
-    const slot = await prisma.blockedSlot.create({
-      data: {
+    const start = new Date(startTime)
+    const end = new Date(endTime)
+
+    // Auto-cancel any CONFIRMED bookings that overlap the blocked slot
+    const conflicting = await prisma.booking.findMany({
+      where: {
         roomId,
-        reason,
-        startTime: new Date(startTime),
-        endTime: new Date(endTime),
-        createdBy: req.user!.userId,
+        status: 'CONFIRMED',
+        startTime: { lt: end },
+        endTime: { gt: start },
       },
     })
-    res.status(201).json(slot)
+    if (conflicting.length > 0) {
+      await prisma.booking.updateMany({
+        where: { id: { in: conflicting.map((b) => b.id) } },
+        data: { status: 'CANCELLED' },
+      })
+    }
+
+    const slot = await prisma.blockedSlot.create({
+      data: { roomId, reason, startTime: start, endTime: end, createdBy: req.user!.userId },
+    })
+    res.status(201).json({ ...slot, cancelledCount: conflicting.length })
   } catch (err) {
     if (err instanceof z.ZodError) { res.status(422).json({ error: err.errors }); return }
     next(err)
@@ -148,7 +161,13 @@ export async function listRooms(_req: Request, res: Response, next: NextFunction
 export async function createRoom(req: Request, res: Response, next: NextFunction) {
   try {
     const data = roomSchema.parse(req.body)
-    const room = await prisma.room.create({ data })
+    // Auto-assign the next available colorIndex (not used by any existing room)
+    const usedIndices = new Set(
+      (await prisma.room.findMany({ select: { colorIndex: true } })).map((r) => r.colorIndex)
+    )
+    let colorIndex = 0
+    while (usedIndices.has(colorIndex)) colorIndex++
+    const room = await prisma.room.create({ data: { ...data, colorIndex } })
     res.status(201).json(room)
   } catch (err) {
     if (err instanceof z.ZodError) { res.status(422).json({ error: err.errors }); return }

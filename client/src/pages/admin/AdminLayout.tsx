@@ -40,7 +40,7 @@ export default function AdminLayout() {
                 `flex items-center gap-2 px-3 py-2 font-mono text-sm border-2 border-transparent transition-all ${
                   isActive
                     ? 'bg-black text-white border-black'
-                    : 'hover:bg-[#FFFBEB] hover:border-black'
+                    : 'hover:bg-[#FFF0F4] hover:border-black'
                 }`
               }
             >
@@ -65,7 +65,7 @@ export default function AdminLayout() {
       {/* Mobile top nav */}
       <div className="md:hidden w-full flex flex-col">
         <div className="flex border-b-4 border-black overflow-x-auto bg-white">
-          <Link to="/" className="flex items-center gap-1 px-3 py-3 font-mono text-xs border-r-4 border-black flex-shrink-0 bg-[#FFFBEB]">
+          <Link to="/" className="flex items-center gap-1 px-3 py-3 font-mono text-xs border-r-4 border-black flex-shrink-0 bg-[#FFF0F4]">
             <ArrowLeft size={12} />
             返回
           </Link>
@@ -75,7 +75,7 @@ export default function AdminLayout() {
               to={to}
               className={({ isActive }) =>
                 `px-4 py-3 font-grotesk font-black text-xs uppercase border-r-2 border-black flex-shrink-0 whitespace-nowrap transition-all ${
-                  isActive ? 'bg-black text-white' : 'bg-white hover:bg-[#FFFBEB]'
+                  isActive ? 'bg-black text-white' : 'bg-white hover:bg-[#FFF0F4]'
                 }`
               }
             >

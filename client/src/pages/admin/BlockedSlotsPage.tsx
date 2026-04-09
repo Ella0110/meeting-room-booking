@@ -26,6 +26,7 @@ export default function BlockedSlotsPage() {
   const [startTimeStr, setStartTimeStr] = useState('09:00')
   const [endTimeStr, setEndTimeStr] = useState('09:30')
   const [formError, setFormError] = useState('')
+  const [cancelledMsg, setCancelledMsg] = useState('')
 
   const createMutation = useMutation({
     mutationFn: () => {
@@ -33,14 +34,18 @@ export default function BlockedSlotsPage() {
       const end = new Date(`${startDate}T${endTimeStr}:00`)
       return createBlockedSlot({ roomId, reason, startTime: start.toISOString(), endTime: end.toISOString() })
     },
-    onSuccess: () => {
+    onSuccess: (data: { cancelledCount?: number }) => {
       qc.invalidateQueries({ queryKey: ['admin-blocked-slots'] })
       qc.invalidateQueries({ queryKey: ['blocked-slots'] })
+      qc.invalidateQueries({ queryKey: ['bookings'] })
+      qc.invalidateQueries({ queryKey: ['my-bookings'] })
       setRoomId(''); setReason(''); setStartDate(''); setFormError('')
+      setCancelledMsg(data.cancelledCount ? `已自动取消 ${data.cancelledCount} 个冲突预订` : '')
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
       setFormError(msg ?? '创建失败')
+      setCancelledMsg('')
     },
   })
 
@@ -57,7 +62,7 @@ export default function BlockedSlotsPage() {
       <h1 className="font-grotesk font-black text-3xl uppercase mb-6">封锁时段</h1>
 
       {/* Add form */}
-      <div className="border-4 border-black bg-[#FFFBEB] p-4 mb-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+      <div className="border-4 border-black bg-[#FFF0F4] p-4 mb-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
         <h2 className="font-grotesk font-black text-xl uppercase mb-4">添加封锁时段</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1">
@@ -108,6 +113,7 @@ export default function BlockedSlotsPage() {
           </div>
         </div>
         {formError && <p className="font-mono text-sm text-[#FF006E] mt-2">{formError}</p>}
+        {cancelledMsg && <p className="font-mono text-sm text-[#8338EC] mt-2">⚠ {cancelledMsg}</p>}
         <button
           onClick={() => createMutation.mutate()}
           disabled={!roomId || !reason || !startDate || createMutation.isPending}

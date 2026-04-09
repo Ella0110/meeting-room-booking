@@ -24,6 +24,7 @@ export default function RoomsPage() {
         : createRoom({ name, capacity, zone, location: location || undefined }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-rooms'] })
+      qc.invalidateQueries({ queryKey: ['rooms'] })
       setShowForm(false)
       setEditRoom(null)
       setName(''); setCapacity(8); setZone('OFFICE'); setLocation('')
@@ -32,7 +33,10 @@ export default function RoomsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteRoom(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-rooms'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-rooms'] })
+      qc.invalidateQueries({ queryKey: ['rooms'] })
+    },
   })
 
   function openEdit(room: Room) {
@@ -55,7 +59,7 @@ export default function RoomsPage() {
       </div>
 
       {showForm && (
-        <div className="border-4 border-black bg-[#FFFBEB] p-4 mb-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+        <div className="border-4 border-black bg-[#FFF0F4] p-4 mb-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
           <h2 className="font-grotesk font-black text-xl uppercase mb-4">
             {editRoom ? '编辑会议室' : '新建会议室'}
           </h2>

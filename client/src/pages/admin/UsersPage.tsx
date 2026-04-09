@@ -34,7 +34,7 @@ export default function UsersPage() {
       <h1 className="font-grotesk font-black text-3xl uppercase mb-6">用户管理</h1>
 
       {/* Invite form */}
-      <div className="border-4 border-black bg-[#FFFBEB] p-4 mb-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+      <div className="border-4 border-black bg-[#FFF0F4] p-4 mb-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
         <h2 className="font-grotesk font-black text-xl uppercase mb-3">发送邀请</h2>
         <div className="flex gap-3">
           <input
