@@ -1,62 +1,62 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { addDays, formatDisplayDate, isSameDay } from '../../utils/dateUtils'
 
 interface CalendarHeaderProps {
   selectedDate: Date
   onDateChange: (date: Date) => void
-  view: 'day' | 'week'
-  onViewChange: (view: 'day' | 'week') => void
 }
 
-export default function CalendarHeader({
-  selectedDate, onDateChange, view, onViewChange,
-}: CalendarHeaderProps) {
+export default function CalendarHeader({ selectedDate, onDateChange }: CalendarHeaderProps) {
   const today = new Date()
   const isToday = isSameDay(selectedDate, today)
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-b-4 border-black bg-white">
-      <div className="flex items-center gap-2">
+    <div className="border-b-4 border-black" style={{ background: '#FFBE0B' }}>
+      <div className="flex items-center px-4 py-2.5 max-w-[1600px] mx-auto gap-2">
+        {/* Prev */}
         <button
           onClick={() => onDateChange(addDays(selectedDate, -1))}
-          className="rounded-none border-4 border-black p-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+          className="rounded-none border-4 border-black bg-white px-3 py-1 font-grotesk font-black text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
           aria-label="上一天"
         >
-          <ChevronLeft size={16} />
+          ←
         </button>
 
-        <button
-          onClick={() => onDateChange(today)}
-          className={`rounded-none border-4 border-black px-3 py-1 font-grotesk font-black text-sm uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all ${isToday ? 'bg-[#FFBE0B]' : 'bg-white'}`}
-        >
-          今天
-        </button>
+        {/* Date display */}
+        <div className="flex items-center gap-2 flex-1">
+          <span className="font-grotesk font-black text-[15px] uppercase" style={{ letterSpacing: '0.3px' }}>
+            {formatDisplayDate(selectedDate)}
+          </span>
+          {isToday && (
+            <span
+              className="inline-block font-grotesk font-black text-[9px] uppercase px-1.5 py-0.5"
+              style={{
+                background: '#000',
+                color: '#FFBE0B',
+                border: '2px solid #000',
+                transform: 'rotate(1deg)',
+                letterSpacing: '0.5px',
+              }}
+            >
+              TODAY
+            </span>
+          )}
+        </div>
 
+        {/* Next */}
         <button
           onClick={() => onDateChange(addDays(selectedDate, 1))}
-          className="rounded-none border-4 border-black p-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+          className="rounded-none border-4 border-black bg-white px-3 py-1 font-grotesk font-black text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
           aria-label="下一天"
         >
-          <ChevronRight size={16} />
+          →
         </button>
 
-        <span className="font-grotesk font-black text-lg ml-2 hidden md:block">
-          {formatDisplayDate(selectedDate)}
-        </span>
-      </div>
-
-      <div className="flex border-4 border-black">
+        {/* Today button */}
         <button
-          onClick={() => onViewChange('day')}
-          className={`px-3 py-1 font-grotesk font-black text-sm uppercase transition-all ${view === 'day' ? 'bg-black text-white' : 'bg-white hover:bg-[#FFFBEB]'}`}
+          onClick={() => onDateChange(today)}
+          className="hidden md:flex rounded-none border-4 border-black bg-black text-white px-3 py-1 font-grotesk font-black text-xs uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,0.4)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
         >
-          日
-        </button>
-        <button
-          onClick={() => onViewChange('week')}
-          className={`px-3 py-1 font-grotesk font-black text-sm uppercase border-l-4 border-black transition-all ${view === 'week' ? 'bg-black text-white' : 'bg-white hover:bg-[#FFFBEB]'}`}
-        >
-          周
+          ★ 今天
         </button>
       </div>
     </div>

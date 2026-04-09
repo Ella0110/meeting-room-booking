@@ -1,55 +1,77 @@
-import { Link, useNavigate } from 'react-router-dom'
-import { LogOut, Calendar, BookOpen } from 'lucide-react'
-import { useAuth } from '../contexts/AuthContext'
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function NavBar() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
 
-  async function handleLogout() {
-    await logout()
-    navigate('/login')
-  }
+    async function handleLogout() {
+        await logout();
+        navigate("/login");
+    }
 
-  return (
-    <nav className="bg-white border-b-4 border-black px-4 md:px-8 py-3 sticky top-0 z-30">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <div className="bg-[#FFBE0B] border-4 border-black px-2 py-0.5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rotate-[-2deg]">
-            <span className="font-grotesk font-black text-sm uppercase tracking-wider">会议室</span>
-          </div>
-        </Link>
+    return (
+        <nav className="bg-white border-b-4 border-black px-4 md:px-6 py-3 sticky top-0 z-30">
+            <div className="max-w-[1600px] mx-auto flex items-center justify-between">
+                {/* Logo */}
+                <Link to="/" className="flex items-center gap-1.5">
+                    <div className="bg-black px-2 py-1 rotate-[-2deg]">
+                        <span className="font-grotesk font-black text-white text-sm uppercase tracking-widest">
+                            MEET
+                        </span>
+                    </div>
+                    <span className="font-grotesk font-black text-xl tracking-tight">
+                        ROOM
+                    </span>
+                    <span
+                        className="text-[#FFBE0B] text-xl animate-spin"
+                        style={{ animationDuration: "5s" }}
+                    >
+                        ✦
+                    </span>
+                </Link>
 
-        {/* Nav links */}
-        <div className="flex items-center gap-4 md:gap-6">
-          <Link to="/" className="flex items-center gap-1 font-mono text-sm hover:underline">
-            <Calendar size={16} />
-            <span className="hidden md:inline">日历</span>
-          </Link>
-          <Link to="/my-bookings" className="flex items-center gap-1 font-mono text-sm hover:underline">
-            <BookOpen size={16} />
-            <span className="hidden md:inline">我的预订</span>
-          </Link>
-          {user?.role === 'ADMIN' && (
-            <Link to="/admin/users" className="font-mono text-sm hover:underline border-2 border-black px-2 py-0.5">
-              管理后台
-            </Link>
-          )}
-        </div>
+                {/* Nav links */}
+                <div className="hidden md:flex items-center gap-6">
+                    <NavLink
+                        to="/"
+                        className={({ isActive }) =>
+                            `font-mono text-xs font-bold uppercase pb-0.5 transition-all ${isActive ? "border-b-4 border-black" : "border-b-2 border-transparent hover:border-black"}`
+                        }
+                    >
+                        日历
+                    </NavLink>
+                    <NavLink
+                        to="/my-bookings"
+                        className={({ isActive }) =>
+                            `font-mono text-xs font-bold uppercase pb-0.5 transition-all ${isActive ? "border-b-4 border-black" : "border-b-2 border-transparent hover:border-black"}`
+                        }
+                    >
+                        我的预订
+                    </NavLink>
+                    {user?.role === "ADMIN" && (
+                        <NavLink
+                            to="/admin/users"
+                            className={({ isActive }) =>
+                                `font-mono text-xs font-bold uppercase pb-0.5 transition-all ${isActive ? "border-b-4 border-black" : "border-b-2 border-transparent hover:border-black"}`
+                            }
+                        >
+                            管理后台
+                        </NavLink>
+                    )}
+                </div>
 
-        {/* User + logout */}
-        <div className="flex items-center gap-3">
-          <span className="font-mono text-sm hidden md:block">{user?.name}</span>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-1 rounded-none border-4 border-black bg-white px-2 py-1 font-mono text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
-          >
-            <LogOut size={14} />
-            <span className="hidden md:inline">退出</span>
-          </button>
-        </div>
-      </div>
-    </nav>
-  )
+                {/* User + logout */}
+                <div className="flex items-center gap-2">
+                    <span className="hidden md:inline font-mono text-xs text-gray-500">{user?.name}</span>
+                    <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-1.5 rounded-none border-4 border-black bg-[#FF006E] text-white px-3 py-1.5 font-grotesk font-black text-xs uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                    >
+                        退出登录
+                    </button>
+                </div>
+            </div>
+        </nav>
+    );
 }

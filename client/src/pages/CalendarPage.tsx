@@ -7,41 +7,11 @@ import CalendarGrid from '../components/calendar/CalendarGrid'
 import MobileCalendar from '../components/calendar/MobileCalendar'
 import BookingPanel from '../components/booking/BookingPanel'
 import type { Room } from '../types'
-import { formatDate, getWeekDates, isSameDay } from '../utils/dateUtils'
-
-const DAY_LABELS = ['一', '二', '三', '四', '五', '六', '日']
-
-function WeekOverview({ selectedDate, onDayClick }: { selectedDate: Date; onDayClick: (d: Date) => void }) {
-  const week = getWeekDates(selectedDate)
-  const today = new Date()
-  return (
-    <div className="flex-1 p-4 overflow-auto">
-      <p className="font-mono text-sm mb-4 text-gray-600">点击某天切换到日视图</p>
-      <div className="grid grid-cols-7 gap-2 max-w-3xl">
-        {week.map((day, i) => {
-          const isToday = isSameDay(day, today)
-          const isSelected = isSameDay(day, selectedDate)
-          return (
-            <button
-              key={i}
-              onClick={() => onDayClick(day)}
-              className={`rounded-none border-4 border-black p-3 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all ${
-                isSelected ? 'bg-black text-white' : isToday ? 'bg-[#FFBE0B]' : 'bg-white'
-              }`}
-            >
-              <div className="font-grotesk font-black text-xs uppercase">周{DAY_LABELS[i]}</div>
-              <div className="font-mono text-lg font-bold mt-1">{day.getDate()}</div>
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
+import { formatDate } from '../utils/dateUtils'
+import { getRoomColor } from '../utils/roomColors'
 
 export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
-  const [view, setView] = useState<'day' | 'week'>('day')
   const [panelOpen, setPanelOpen] = useState(false)
   const [panelRoom, setPanelRoom] = useState<Room | null>(null)
   const [panelColorIndex, setPanelColorIndex] = useState(0)
@@ -62,39 +32,52 @@ export default function CalendarPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-64px)]">
-      <CalendarHeader
-        selectedDate={selectedDate}
-        onDateChange={setSelectedDate}
-        view={view}
-        onViewChange={setView}
-      />
+      <CalendarHeader selectedDate={selectedDate} onDateChange={setSelectedDate} />
 
-      {view === 'week' ? (
-        <WeekOverview selectedDate={selectedDate} onDayClick={(d) => { setSelectedDate(d); setView('day') }} />
-      ) : (
-        <>
-          <div className="hidden md:block flex-1 overflow-auto">
-            <CalendarGrid
-              rooms={rooms}
-              bookings={bookings}
-              blockedSlots={blockedSlots}
-              selectedDate={selectedDate}
-              onCellClick={handleCellClick}
-              isLoading={roomsLoading || bookingsLoading}
-            />
+      {/* Legend row — desktop only */}
+      <div className="hidden md:block bg-white overflow-x-auto" style={{ borderBottom: '2px solid #000', padding: '8px 24px' }}>
+        <div className="flex items-center gap-2.5 max-w-[1600px] mx-auto flex-nowrap">
+          <span className="font-mono text-[10px] font-bold text-gray-400 uppercase whitespace-nowrap">ROOMS:</span>
+          <div className="flex gap-2 flex-nowrap">
+            {rooms.map((room, i) => (
+              <div key={room.id} className="flex items-center gap-1.5">
+                <span style={{ width: 14, height: 14, background: getRoomColor(i), border: '2px solid #000', display: 'inline-block', flexShrink: 0 }} />
+                <span className="font-grotesk font-black text-[11px] whitespace-nowrap">{room.name}</span>
+                <span className="font-mono text-[9px] text-gray-400">{room.capacity}人</span>
+              </div>
+            ))}
+            <div className="flex items-center gap-1.5 ml-2">
+              <span style={{ width: 14, height: 14, background: '#d1d5db', border: '2px solid #000', display: 'inline-block', flexShrink: 0 }} />
+              <span className="font-grotesk font-black text-[11px] whitespace-nowrap">他人预订</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span style={{ width: 14, height: 14, background: 'repeating-linear-gradient(-45deg,#d1d5db,#d1d5db 3px,#f3f4f6 3px,#f3f4f6 10px)', border: '2px solid #000', display: 'inline-block', flexShrink: 0 }} />
+              <span className="font-grotesk font-black text-[11px] whitespace-nowrap">封锁时段</span>
+            </div>
           </div>
-          <div className="md:hidden flex-1 overflow-hidden">
-            <MobileCalendar
-              rooms={rooms}
-              bookings={bookings}
-              blockedSlots={blockedSlots}
-              selectedDate={selectedDate}
-              onCellClick={handleCellClick}
-              isLoading={roomsLoading || bookingsLoading}
-            />
-          </div>
-        </>
-      )}
+        </div>
+      </div>
+
+      <div className="hidden md:block flex-1 overflow-auto">
+        <CalendarGrid
+          rooms={rooms}
+          bookings={bookings}
+          blockedSlots={blockedSlots}
+          selectedDate={selectedDate}
+          onCellClick={handleCellClick}
+          isLoading={roomsLoading || bookingsLoading}
+        />
+      </div>
+      <div className="md:hidden flex-1 overflow-hidden">
+        <MobileCalendar
+          rooms={rooms}
+          bookings={bookings}
+          blockedSlots={blockedSlots}
+          selectedDate={selectedDate}
+          onCellClick={handleCellClick}
+          isLoading={roomsLoading || bookingsLoading}
+        />
+      </div>
 
       <BookingPanel
         isOpen={panelOpen}

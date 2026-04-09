@@ -1,6 +1,6 @@
 import type { Room, Booking, BlockedSlot } from '../../types'
 import { TIME_SLOTS, slotIndexOf, durationInSlots } from '../../utils/dateUtils'
-import { getRoomColor } from '../../utils/roomColors'
+import { getRoomColor, getRoomTextColor } from '../../utils/roomColors'
 import CalendarCell, { type CellData } from './CalendarCell'
 import Skeleton from '../Skeleton'
 
@@ -52,24 +52,26 @@ function CalendarGridSkeleton({ roomCount }: { roomCount: number }) {
       <div
         className="grid"
         style={{
-          gridTemplateColumns: `80px repeat(${roomCount}, minmax(120px, 1fr))`,
-          gridTemplateRows: `48px repeat(18, 52px)`,
-          minWidth: `${80 + roomCount * 120}px`,
+          gridTemplateColumns: `72px repeat(${roomCount}, minmax(148px, 1fr))`,
+          gridTemplateRows: `52px repeat(18, 58px)`,
+          minWidth: `${72 + roomCount * 148}px`,
         }}
       >
         <div className="border-r-4 border-b-4 border-black" />
         {Array.from({ length: roomCount }, (_, i) => (
-          <div key={i} className="border-r-2 border-b-4 border-black p-2 flex items-center">
-            <Skeleton className="h-5 w-20" />
+          <div key={i} className="border-r-4 border-b-4 border-black p-3 flex items-center">
+            <Skeleton className="h-5 w-24" />
           </div>
         ))}
         {Array.from({ length: 18 }, (_, row) => (
           <>
-            <div key={`label-${row}`} className="border-r-4 border-b-2 border-black px-2 flex items-center">
-              <Skeleton className="h-3 w-10" />
+            <div key={`label-${row}`} className="border-r-4 border-black px-2 flex items-start justify-end pt-1"
+              style={{ borderBottom: row % 2 === 0 ? '1px solid #e5e7eb' : '1px dashed #f0f0f0' }}>
+              {row % 2 === 0 && <Skeleton className="h-3 w-10" />}
             </div>
             {Array.from({ length: roomCount }, (_, col) => (
-              <div key={`cell-${row}-${col}`} className="border-r-2 border-b-2 border-black" />
+              <div key={`cell-${row}-${col}`}
+                style={{ borderRight: '1px solid #e5e7eb', borderBottom: row % 2 === 0 ? '1px solid #e5e7eb' : '1px dashed #f0f0f0' }} />
             ))}
           </>
         ))}
@@ -90,34 +92,64 @@ export default function CalendarGrid({
       <div
         className="grid"
         style={{
-          gridTemplateColumns: `80px repeat(${colCount}, minmax(140px, 1fr))`,
-          gridTemplateRows: `48px repeat(18, 52px)`,
-          minWidth: `${80 + colCount * 140}px`,
+          gridTemplateColumns: `72px repeat(${colCount}, minmax(148px, 1fr))`,
+          gridTemplateRows: `52px repeat(18, 58px)`,
+          minWidth: `${72 + colCount * 148}px`,
         }}
       >
-        {/* Corner */}
-        <div style={{ gridRow: 1, gridColumn: 1 }}
-          className="sticky top-0 left-0 z-20 bg-white border-r-4 border-b-4 border-black" />
+        {/* Corner: TIME label */}
+        <div
+          style={{ gridRow: 1, gridColumn: 1, borderRight: '4px solid #000', borderBottom: '4px solid #000' }}
+          className="sticky top-0 left-0 z-20 bg-white flex items-end justify-end pb-2 pr-2"
+        >
+          <span className="font-mono text-[10px] font-bold text-gray-400 uppercase">TIME</span>
+        </div>
 
-        {/* Room headers */}
-        {rooms.map((room, rIdx) => (
-          <div
-            key={room.id}
-            style={{ gridRow: 1, gridColumn: rIdx + 2, borderBottom: '4px solid #000', borderRight: '2px solid #000' }}
-            className="sticky top-0 z-20 bg-white flex items-center gap-2 px-3"
-          >
-            <div className="w-3 h-3 border-2 border-black flex-shrink-0"
-              style={{ backgroundColor: getRoomColor(rIdx) }} />
-            <span className="font-grotesk font-black text-sm uppercase truncate">{room.name}</span>
-            <span className="font-mono text-xs text-gray-600 hidden lg:block">({room.capacity}人)</span>
-          </div>
-        ))}
+        {/* Room headers — colored background */}
+        {rooms.map((room, rIdx) => {
+          const bg = getRoomColor(rIdx)
+          const fg = getRoomTextColor(rIdx)
+          return (
+            <div
+              key={room.id}
+              style={{
+                gridRow: 1,
+                gridColumn: rIdx + 2,
+                backgroundColor: bg,
+                borderBottom: '4px solid #000',
+                borderRight: '4px solid #000',
+                padding: '10px 12px',
+              }}
+              className="sticky top-0 z-20 flex flex-col justify-center"
+            >
+              <div className="font-grotesk font-black text-sm uppercase" style={{ color: fg }}>
+                {room.name}
+              </div>
+              <div className="font-mono text-[10px] mt-0.5 uppercase" style={{ color: fg, opacity: 0.85 }}>
+                {room.capacity}人 · {room.zone}
+              </div>
+            </div>
+          )
+        })}
 
         {/* Time labels */}
         {TIME_SLOTS.map((slot, sIdx) => (
-          <div key={slot} style={{ gridRow: sIdx + 2, gridColumn: 1 }}
-            className="sticky left-0 z-10 bg-white border-r-4 border-b-2 border-black px-2 flex items-center">
-            <span className="font-mono text-xs text-gray-700">{slot}</span>
+          <div
+            key={slot}
+            style={{
+              gridRow: sIdx + 2,
+              gridColumn: 1,
+              borderRight: '4px solid #000',
+              borderBottom: sIdx % 2 === 0 ? '1px solid #e5e7eb' : '1px dashed #f0f0f0',
+            }}
+            className="sticky left-0 z-10 bg-white px-2 flex items-start justify-end pt-1"
+          >
+            <span className={sIdx % 2 === 0
+              ? 'font-mono text-[11px] font-bold text-gray-800'
+              : 'font-mono text-[9px] text-gray-300'}
+            >
+              {slot}
+            </span>
           </div>
         ))}
 
@@ -128,8 +160,11 @@ export default function CalendarGrid({
             return (
               <CalendarCell
                 key={`${room.id}-${cell.slotIdx}`}
-                cell={cell} room={room} colorIndex={rIdx}
-                selectedDate={selectedDate} onCellClick={onCellClick}
+                cell={cell}
+                room={room}
+                colorIndex={rIdx}
+                selectedDate={selectedDate}
+                onCellClick={onCellClick}
                 style={{ gridRow: `${cell.slotIdx + 2} / span ${cell.span}`, gridColumn: rIdx + 2 }}
               />
             )
