@@ -5,6 +5,16 @@ import { createBlockedSlot, deleteBlockedSlot } from '../../api/admin'
 import Skeleton from '../../components/Skeleton'
 import { formatDate, formatTime } from '../../utils/dateUtils'
 
+// 09:00 → 18:00 in 30-min steps
+const TIME_OPTIONS = Array.from({ length: 19 }, (_, i) => {
+  const totalMin = 9 * 60 + i * 30
+  const h = String(Math.floor(totalMin / 60)).padStart(2, '0')
+  const m = String(totalMin % 60).padStart(2, '0')
+  return `${h}:${m}`
+})
+
+const todayStr = formatDate(new Date())
+
 export default function BlockedSlotsPage() {
   const qc = useQueryClient()
   const { data: slots = [], isLoading } = useAdminBlockedSlots()
@@ -14,7 +24,7 @@ export default function BlockedSlotsPage() {
   const [reason, setReason] = useState('')
   const [startDate, setStartDate] = useState('')
   const [startTimeStr, setStartTimeStr] = useState('09:00')
-  const [endTimeStr, setEndTimeStr] = useState('10:00')
+  const [endTimeStr, setEndTimeStr] = useState('09:30')
   const [formError, setFormError] = useState('')
 
   const createMutation = useMutation({
@@ -65,19 +75,35 @@ export default function BlockedSlotsPage() {
           </div>
           <div className="flex flex-col gap-1">
             <label className="font-grotesk font-black text-sm uppercase">日期</label>
-            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
+            <input type="date" value={startDate} min={todayStr} onChange={(e) => setStartDate(e.target.value)}
               className="rounded-none border-4 border-black font-mono px-3 py-2 focus:outline-none transition-all" />
           </div>
           <div className="flex gap-3">
             <div className="flex flex-col gap-1 flex-1">
               <label className="font-grotesk font-black text-sm uppercase">开始</label>
-              <input type="time" value={startTimeStr} onChange={(e) => setStartTimeStr(e.target.value)}
-                className="rounded-none border-4 border-black font-mono px-3 py-2 focus:outline-none transition-all" />
+              <select value={startTimeStr}
+                onChange={(e) => {
+                  setStartTimeStr(e.target.value)
+                  // ensure end is always after start
+                  const startIdx = TIME_OPTIONS.indexOf(e.target.value)
+                  if (TIME_OPTIONS.indexOf(endTimeStr) <= startIdx) {
+                    setEndTimeStr(TIME_OPTIONS[Math.min(startIdx + 1, TIME_OPTIONS.length - 1)])
+                  }
+                }}
+                className="rounded-none border-4 border-black font-mono px-3 py-2 focus:outline-none"
+              >
+                {TIME_OPTIONS.slice(0, -1).map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
             </div>
             <div className="flex flex-col gap-1 flex-1">
               <label className="font-grotesk font-black text-sm uppercase">结束</label>
-              <input type="time" value={endTimeStr} onChange={(e) => setEndTimeStr(e.target.value)}
-                className="rounded-none border-4 border-black font-mono px-3 py-2 focus:outline-none transition-all" />
+              <select value={endTimeStr} onChange={(e) => setEndTimeStr(e.target.value)}
+                className="rounded-none border-4 border-black font-mono px-3 py-2 focus:outline-none"
+              >
+                {TIME_OPTIONS.slice(TIME_OPTIONS.indexOf(startTimeStr) + 1).map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
