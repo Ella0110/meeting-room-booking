@@ -42,6 +42,11 @@ export async function deleteRoom(id: string): Promise<void> {
   await api.delete(`/api/admin/rooms/${id}`)
 }
 
+export async function enableRoom(id: string): Promise<Room> {
+  const res = await api.patch<Room>(`/api/admin/rooms/${id}`, { isActive: true })
+  return res.data
+}
+
 export async function listAdminBlockedSlots(): Promise<AdminBlockedSlot[]> {
   const res = await api.get<AdminBlockedSlot[]>('/api/admin/blocked-slots')
   return res.data

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Room, Booking, BlockedSlot } from '../../types'
-import { TIME_SLOTS, slotIndexOf, durationInSlots, slotToDateTime, formatTime } from '../../utils/dateUtils'
+import { TIME_SLOTS, slotIndexOf, durationInSlots, slotToDateTime, formatTime, isSameDay } from '../../utils/dateUtils'
 import { getRoomColor } from '../../utils/roomColors'
 import Skeleton from '../Skeleton'
 
@@ -74,8 +74,17 @@ export default function MobileCalendar({
   }
 
   const activeRoom = rooms[activeRoomIdx]
-  const color = getRoomColor(activeRoomIdx)
+  const color = getRoomColor(activeRoom.colorIndex)
   const slotStates = computeSlotStates(activeRoom.id, bookings, blockedSlots)
+
+  // For today: hide past slots, start from next whole hour
+  const firstSlotIdx = (() => {
+    if (!isSameDay(selectedDate, new Date())) return 0
+    const now = new Date()
+    const h = now.getHours(); const m = now.getMinutes()
+    const nextHour = m === 0 ? h : h + 1
+    return Math.max(0, Math.min(18, (nextHour - 9) * 2))
+  })()
 
   return (
     <div className="flex flex-col h-full">
@@ -94,7 +103,7 @@ export default function MobileCalendar({
             <div className="flex items-center gap-2">
               <div
                 className="w-2 h-2 border border-black flex-shrink-0"
-                style={{ backgroundColor: getRoomColor(i) }}
+                style={{ backgroundColor: getRoomColor(room.colorIndex) }}
               />
               {room.name}
             </div>
@@ -114,7 +123,14 @@ export default function MobileCalendar({
 
       {/* Vertical timeline */}
       <div className="flex-1 overflow-y-auto">
-        {TIME_SLOTS.map((slot, i) => {
+        {firstSlotIdx >= 18 && (
+          <div className="p-6 text-center">
+            <p className="font-grotesk font-black text-lg uppercase">今日预订已结束</p>
+            <p className="font-mono text-xs text-gray-400 mt-1">营业时间 09:00–18:00</p>
+          </div>
+        )}
+        {TIME_SLOTS.slice(firstSlotIdx).map((slot, vIdx) => {
+          const i = firstSlotIdx + vIdx
           const state = slotStates[i]
           const startTime = slotToDateTime(selectedDate, i)
 

@@ -63,7 +63,7 @@ export default function BookingsPage() {
                   {b.user.name} ({b.user.email})
                 </p>
               </div>
-              {b.status === 'CONFIRMED' && (
+              {b.status === 'CONFIRMED' && new Date(b.startTime) > new Date() && (
                 <button
                   onClick={() => { if (confirm(`确认取消 "${b.title}"？`)) cancelMutation.mutate(b.id) }}
                   disabled={cancelMutation.isPending}

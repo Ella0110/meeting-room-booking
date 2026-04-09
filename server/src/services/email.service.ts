@@ -9,10 +9,22 @@ const transporter = nodemailer.createTransport({
       : undefined,
 })
 
+async function trySendMail(options: Parameters<typeof transporter.sendMail>[0]) {
+  try {
+    await transporter.sendMail(options)
+  } catch (err) {
+    // In development, SMTP may not be running — log the email to console instead
+    console.warn('[email] SMTP unavailable, logging email to console:')
+    console.warn(`  To: ${options.to}`)
+    console.warn(`  Subject: ${options.subject}`)
+    console.warn(`  Body: ${options.html}`)
+  }
+}
+
 export async function sendInviteEmail(to: string, token: string, inviterName: string) {
   if (process.env.NODE_ENV === 'test') return
   const url = `${process.env.APP_URL}/invite/${token}`
-  await transporter.sendMail({
+  await trySendMail({
     from: process.env.EMAIL_FROM ?? 'noreply@booking.app',
     to,
     subject: `${inviterName} 邀请您加入会议室预订系统`,
@@ -23,7 +35,7 @@ export async function sendInviteEmail(to: string, token: string, inviterName: st
 export async function sendPasswordResetEmail(to: string, token: string) {
   if (process.env.NODE_ENV === 'test') return
   const url = `${process.env.APP_URL}/reset-password?token=${token}`
-  await transporter.sendMail({
+  await trySendMail({
     from: process.env.EMAIL_FROM ?? 'noreply@booking.app',
     to,
     subject: '重置您的密码',

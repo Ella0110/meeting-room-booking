@@ -68,7 +68,7 @@ export default function NavBar() {
                     </span>
                     <button
                         onClick={handleLogout}
-                        className="flex items-center gap-1.5 rounded-none border-4 border-black bg-[#FF006E] text-white px-3 py-1.5 font-grotesk font-black text-xs uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+                        className="flex items-center gap-1.5 rounded-none border-4 border-black bg-[#FF006E] text-white px-3 py-1.5 font-grotesk font-black text-xs uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
                     >
                         退出登录
                     </button>

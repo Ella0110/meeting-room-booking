@@ -177,7 +177,7 @@ export async function createRoom(req: Request, res: Response, next: NextFunction
 
 export async function updateRoom(req: Request, res: Response, next: NextFunction) {
   try {
-    const data = roomSchema.partial().parse(req.body)
+    const data = roomSchema.partial().extend({ isActive: z.boolean().optional() }).parse(req.body)
     const room = await prisma.room.update({ where: { id: req.params['id'] as string }, data })
     res.json(room)
   } catch (err) {

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAdminRooms } from '../../hooks/useAdminData'
-import { createRoom, updateRoom, deleteRoom } from '../../api/admin'
+import { createRoom, updateRoom, deleteRoom, enableRoom } from '../../api/admin'
 import type { Room } from '../../types'
 import Skeleton from '../../components/Skeleton'
 
@@ -33,6 +33,14 @@ export default function RoomsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteRoom(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-rooms'] })
+      qc.invalidateQueries({ queryKey: ['rooms'] })
+    },
+  })
+
+  const enableMutation = useMutation({
+    mutationFn: (id: string) => enableRoom(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-rooms'] })
       qc.invalidateQueries({ queryKey: ['rooms'] })
@@ -121,12 +129,21 @@ export default function RoomsPage() {
                   className="rounded-none border-4 border-black bg-white font-grotesk font-black uppercase text-xs px-3 py-1.5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
                   编辑
                 </button>
-                <button
-                  onClick={() => { if (confirm(`确认停用 ${room.name}？`)) deleteMutation.mutate(room.id) }}
-                  disabled={!room.isActive || deleteMutation.isPending}
-                  className="rounded-none border-4 border-black bg-[#FF006E] text-white font-grotesk font-black uppercase text-xs px-3 py-1.5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all disabled:opacity-50 disabled:pointer-events-none">
-                  停用
-                </button>
+                {room.isActive ? (
+                  <button
+                    onClick={() => { if (confirm(`确认停用 ${room.name}？`)) deleteMutation.mutate(room.id) }}
+                    disabled={deleteMutation.isPending}
+                    className="rounded-none border-4 border-black bg-[#FF006E] text-white font-grotesk font-black uppercase text-xs px-3 py-1.5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all disabled:opacity-50 disabled:pointer-events-none">
+                    停用
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => enableMutation.mutate(room.id)}
+                    disabled={enableMutation.isPending}
+                    className="rounded-none border-4 border-black bg-[#06D6A0] text-black font-grotesk font-black uppercase text-xs px-3 py-1.5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all disabled:opacity-50 disabled:pointer-events-none">
+                    启用
+                  </button>
+                )}
               </div>
             </div>
           ))}
