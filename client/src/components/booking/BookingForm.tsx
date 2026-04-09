@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Room, Booking } from '../../types'
 import { createBooking } from '../../api/bookings'
 import { formatTime } from '../../utils/dateUtils'
-import { getRoomColor } from '../../utils/roomColors'
+import { getRoomColor, getRoomTextColor } from '../../utils/roomColors'
 
 const QUICK_DURATIONS = [
   { label: '30分', value: 30 },
@@ -115,7 +115,7 @@ export default function BookingForm({
               onClick={() => setDurationMin(d.value)}
               className="rounded-none border-4 border-black font-grotesk font-black text-xs uppercase py-1.5 transition-all"
               style={durationMin === d.value
-                ? { background: '#8338EC', color: '#fff', boxShadow: '4px 4px 0 0 #000' }
+                ? { background: roomColor, color: getRoomTextColor(colorIndex), boxShadow: '4px 4px 0 0 #000' }
                 : { background: '#fff', color: '#000' }
               }
             >
@@ -132,7 +132,7 @@ export default function BookingForm({
               onClick={() => setDurationMin(d.value)}
               className="rounded-none border-2 border-black font-mono text-[10px] py-1 transition-all"
               style={durationMin === d.value
-                ? { background: '#8338EC', color: '#fff' }
+                ? { background: roomColor, color: getRoomTextColor(colorIndex) }
                 : { background: '#f9fafb', color: '#000' }
               }
             >

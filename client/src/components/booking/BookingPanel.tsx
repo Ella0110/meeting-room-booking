@@ -22,13 +22,13 @@ function PanelHeader({ room, colorIndex, startTime, onClose }: {
 
   return (
     <>
-      {/* Colored top bar */}
-      <div style={{ backgroundColor: color, borderBottom: '4px solid #000', padding: '10px 16px' }}
+      {/* Top bar: white bg, colored tag */}
+      <div style={{ backgroundColor: '#fff', borderBottom: '4px solid #000', padding: '10px 16px' }}
         className="flex items-center justify-between">
         <div style={{ display: 'inline-block', transform: 'rotate(-1deg)' }}>
           <span
             className="font-grotesk font-black text-[11px] uppercase px-2.5 py-1 border-[3px] border-black"
-            style={{ background: '#fff', color: '#000', letterSpacing: '0.5px' }}
+            style={{ background: color, color: textColor, letterSpacing: '0.5px' }}
           >
             ✦ 新建预订
           </span>
@@ -81,11 +81,11 @@ function MobileHeader({ room, colorIndex, startTime, onClose }: {
 
   return (
     <>
-      {/* Colored top bar */}
-      <div style={{ backgroundColor: color, borderBottom: '4px solid #000', padding: '8px 14px' }}
+      {/* Top bar: white bg, colored tag */}
+      <div style={{ backgroundColor: '#fff', borderBottom: '4px solid #000', padding: '8px 14px' }}
         className="flex items-center justify-between">
         <span className="font-grotesk font-black text-[10px] uppercase px-2 py-0.5 border-[3px] border-black"
-          style={{ background: '#fff', color: '#000' }}>
+          style={{ background: color, color: textColor }}>
           ✦ 新建预订
         </span>
         <button

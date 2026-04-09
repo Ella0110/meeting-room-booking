@@ -24,7 +24,7 @@ export default function NavBar() {
                         ROOM
                     </span>
                     <span
-                        className="text-[#FFBE0B] text-xl animate-spin"
+                        className="text-[#FFBE0B] text-3xl animate-spin"
                         style={{ animationDuration: "5s" }}
                     >
                         ✦
@@ -63,7 +63,9 @@ export default function NavBar() {
 
                 {/* User + logout */}
                 <div className="flex items-center gap-2">
-                    <span className="hidden md:inline font-mono text-xs text-gray-500">{user?.name}</span>
+                    <span className="hidden md:inline font-mono text-xs text-gray-500">
+                        {user?.name}
+                    </span>
                     <button
                         onClick={handleLogout}
                         className="flex items-center gap-1.5 rounded-none border-4 border-black bg-[#FF006E] text-white px-3 py-1.5 font-grotesk font-black text-xs uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
