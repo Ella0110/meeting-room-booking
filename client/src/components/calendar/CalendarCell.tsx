@@ -42,7 +42,7 @@ export default function CalendarCell({
             ...style,
             borderRight: CELL_BORDER_HOUR,
             borderBottom: cellBorderBottom,
-            background: 'repeating-linear-gradient(-45deg, #f3f4f6, #f3f4f6 3px, #ebebeb 3px, #ebebeb 8px)',
+            backgroundColor: isHour ? '#e5e7eb' : '#efefef',
             cursor: 'not-allowed',
           }}
           className="w-full h-full"

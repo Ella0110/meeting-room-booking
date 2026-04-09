@@ -18,64 +18,57 @@ function PanelHeader({ room, colorIndex, startTime, onClose }: {
 }) {
   const color = getRoomColor(colorIndex)
   const textColor = getRoomTextColor(colorIndex)
-  const endTime = new Date(startTime.getTime() + 60 * 60_000) // default 1h preview
+  const endTime = new Date(startTime.getTime() + 60 * 60_000)
 
   return (
-    <div className="flex flex-col gap-4 p-6" style={{ borderBottom: '4px solid #000' }}>
-      {/* Tag + close */}
-      <div className="flex items-start justify-between">
-        <div>
-          <div style={{ display: 'inline-block', transform: 'rotate(-2deg)', marginBottom: 10 }}>
-            <span
-              className="font-grotesk font-black text-[11px] uppercase px-2.5 py-1 border-[3px] border-black"
-              style={{ background: '#FFBE0B', letterSpacing: '0.5px' }}
-            >
-              ✦ 新建预订
-            </span>
-          </div>
-          <h2 className="font-grotesk font-black text-2xl uppercase" style={{ letterSpacing: '-0.5px' }}>
-            {room.name}
-          </h2>
+    <>
+      {/* Colored top bar */}
+      <div style={{ backgroundColor: color, borderBottom: '4px solid #000', padding: '10px 16px' }}
+        className="flex items-center justify-between">
+        <div style={{ display: 'inline-block', transform: 'rotate(-1deg)' }}>
+          <span
+            className="font-grotesk font-black text-[11px] uppercase px-2.5 py-1 border-[3px] border-black"
+            style={{ background: '#fff', color: '#000', letterSpacing: '0.5px' }}
+          >
+            ✦ 新建预订
+          </span>
         </div>
         <button
           onClick={onClose}
-          className="rounded-none border-4 border-black bg-white px-2 py-1 font-grotesk font-black text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex-shrink-0"
+          className="rounded-none border-4 border-black bg-white px-2 py-1 font-grotesk font-black text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
         >
           ✕
         </button>
       </div>
 
-      {/* Room card */}
-      <div
-        className="border-4 border-black px-4 py-3 flex items-center justify-between"
-        style={{ backgroundColor: color }}
-      >
+      {/* Room info */}
+      <div className="flex flex-col gap-3 p-5" style={{ borderBottom: '4px solid #000' }}>
         <div>
-          <div className="font-grotesk font-black text-sm uppercase" style={{ color: textColor }}>
-            {room.name} · {room.capacity}人 · {room.zone}
-          </div>
-          <div className="font-mono text-[10px] mt-1" style={{ color: textColor, opacity: 0.7 }}>
-            {room.zone === 'SHARED' ? '任意日期 09:00–18:00' : '仅工作日 09:00–18:00'}
-          </div>
+          <h2 className="font-grotesk font-black text-2xl uppercase" style={{ letterSpacing: '-0.5px' }}>
+            {room.name}
+          </h2>
+          <p className="font-mono text-[11px] text-gray-500 mt-0.5 uppercase">
+            {room.capacity}人 · {room.zone} · {room.zone === 'SHARED' ? '任意日期 09:00–18:00' : '仅工作日 09:00–18:00'}
+          </p>
         </div>
-      </div>
 
-      {/* Time card */}
-      <div className="border-4 border-black px-4 py-3 bg-white">
-        <div className="flex items-center gap-2.5 mb-1.5">
-          <div className="font-mono font-bold text-lg bg-black text-white px-3 py-1.5">
-            {formatTime(startTime)}
+        {/* Time display */}
+        <div className="border-4 border-black px-4 py-3" style={{ backgroundColor: color }}>
+          <div className="flex items-center gap-2.5 mb-1">
+            <div className="font-mono font-bold text-lg bg-black px-3 py-1" style={{ color }}>
+              {formatTime(startTime)}
+            </div>
+            <span className="font-black text-xl" style={{ color: textColor }}>→</span>
+            <div className="font-mono font-bold text-lg bg-black px-3 py-1" style={{ color }}>
+              {formatTime(endTime)}
+            </div>
           </div>
-          <span className="font-black text-xl">→</span>
-          <div className="font-mono font-bold text-lg bg-black text-white px-3 py-1.5">
-            {formatTime(endTime)}
+          <div className="font-mono text-[11px] font-bold uppercase" style={{ color: textColor, opacity: 0.75 }}>
+            {formatDisplayDate(startTime)}
           </div>
-        </div>
-        <div className="font-mono text-[11px] text-gray-400 font-bold uppercase">
-          {formatDisplayDate(startTime)}
         </div>
       </div>
-    </div>
+    </>
   )
 }
 
@@ -87,55 +80,44 @@ function MobileHeader({ room, colorIndex, startTime, onClose }: {
   const endTime = new Date(startTime.getTime() + 60 * 60_000)
 
   return (
-    <div className="flex flex-col gap-3 p-5" style={{ borderBottom: '4px solid #000' }}>
-      {/* Tag + close */}
-      <div className="flex items-start justify-between">
-        <div>
-          <div style={{ display: 'inline-block', transform: 'rotate(-2deg)', marginBottom: 8 }}>
-            <span className="font-grotesk font-black text-[10px] uppercase px-2 py-0.5 border-[3px] border-black"
-              style={{ background: '#FFBE0B' }}>
-              ✦ 新建预订
-            </span>
-          </div>
-          <h2 className="font-grotesk font-black text-xl uppercase" style={{ letterSpacing: '-0.5px' }}>
-            {room.name}
-          </h2>
-        </div>
+    <>
+      {/* Colored top bar */}
+      <div style={{ backgroundColor: color, borderBottom: '4px solid #000', padding: '8px 14px' }}
+        className="flex items-center justify-between">
+        <span className="font-grotesk font-black text-[10px] uppercase px-2 py-0.5 border-[3px] border-black"
+          style={{ background: '#fff', color: '#000' }}>
+          ✦ 新建预订
+        </span>
         <button
           onClick={onClose}
-          className="rounded-none border-4 border-black bg-white px-2 py-1 font-grotesk font-black text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex-shrink-0"
+          className="rounded-none border-4 border-black bg-white px-2 py-1 font-grotesk font-black text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
         >
           ✕
         </button>
       </div>
 
-      {/* 2-col: room card + time card */}
-      <div className="grid grid-cols-2 gap-2.5">
-        <div className="border-4 border-black p-2.5 flex items-center"
-          style={{ backgroundColor: color }}>
-          <div>
-            <div className="font-grotesk font-black text-[11px] uppercase leading-tight" style={{ color: textColor }}>
-              {room.name}
-            </div>
-            <div className="font-mono text-[9px] mt-0.5" style={{ color: textColor, opacity: 0.8 }}>
-              {room.capacity}人 · {room.zone}
-            </div>
-          </div>
+      {/* Room + time */}
+      <div className="flex flex-col gap-2.5 p-4" style={{ borderBottom: '4px solid #000' }}>
+        <div>
+          <h2 className="font-grotesk font-black text-lg uppercase" style={{ letterSpacing: '-0.3px' }}>{room.name}</h2>
+          <p className="font-mono text-[10px] text-gray-500">{room.capacity}人 · {room.zone}</p>
         </div>
-        <div className="border-4 border-black p-2.5 bg-white">
-          <div className="flex items-center gap-1.5 mb-1">
-            <span className="font-mono font-bold text-sm bg-black text-white px-2 py-0.5">
+        <div className="border-4 border-black p-2.5" style={{ backgroundColor: color }}>
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono font-bold text-sm bg-black px-2 py-0.5" style={{ color }}>
               {formatTime(startTime)}
             </span>
-            <span className="font-black text-base">→</span>
-            <span className="font-mono font-bold text-sm bg-black text-white px-2 py-0.5">
+            <span className="font-black text-base" style={{ color: textColor }}>→</span>
+            <span className="font-mono font-bold text-sm bg-black px-2 py-0.5" style={{ color }}>
               {formatTime(endTime)}
             </span>
           </div>
-          <div className="font-mono text-[9px] text-gray-400 font-bold uppercase">今天</div>
+          <div className="font-mono text-[9px] font-bold uppercase mt-1" style={{ color: textColor, opacity: 0.75 }}>
+            {formatDisplayDate(startTime)}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
 
@@ -181,12 +163,11 @@ export default function BookingPanel({
         }`}
         style={{ maxHeight: '90vh' }}
       >
-        {/* Drag handle */}
-        <div className="flex justify-center py-3">
-          <div className="w-12 h-1.5 bg-black" />
+        <div className="flex justify-center py-2.5">
+          <div className="w-10 h-1 bg-black" />
         </div>
         <MobileHeader room={room} colorIndex={colorIndex} startTime={startTime} onClose={onClose} />
-        <div className="overflow-y-auto p-5">
+        <div className="overflow-y-auto p-4">
           <BookingForm
             room={room}
             colorIndex={colorIndex}

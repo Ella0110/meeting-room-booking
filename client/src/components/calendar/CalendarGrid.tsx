@@ -48,7 +48,7 @@ function computeRoomCells(
 
 function CalendarGridSkeleton({ roomCount }: { roomCount: number }) {
   return (
-    <div className="overflow-auto border-4 border-black">
+    <div className="h-full overflow-auto border-4 border-black">
       <div
         className="grid"
         style={{
@@ -88,7 +88,7 @@ export default function CalendarGrid({
   const colCount = rooms.length
 
   return (
-    <div className="overflow-auto border-4 border-black">
+    <div className="h-full overflow-auto border-4 border-black">
       <div
         className="grid"
         style={{
