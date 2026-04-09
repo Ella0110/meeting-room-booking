@@ -12,7 +12,11 @@ export default function BookingsPage() {
 
   const cancelMutation = useMutation({
     mutationFn: (id: string) => cancelAnyBooking(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-bookings'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-bookings'] })
+      qc.invalidateQueries({ queryKey: ['bookings'] })
+      qc.invalidateQueries({ queryKey: ['my-bookings'] })
+    },
   })
 
   return (

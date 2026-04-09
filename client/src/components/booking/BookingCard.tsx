@@ -20,6 +20,7 @@ export default function BookingCard({ booking, roomColorIndex = 0, canCancel }: 
     mutationFn: () => cancelBooking(booking.id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['my-bookings'] })
+      qc.invalidateQueries({ queryKey: ['bookings'] })
     },
   })
 

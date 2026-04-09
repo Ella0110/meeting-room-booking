@@ -25,6 +25,7 @@ export default function BlockedSlotsPage() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-blocked-slots'] })
+      qc.invalidateQueries({ queryKey: ['blocked-slots'] })
       setRoomId(''); setReason(''); setStartDate(''); setFormError('')
     },
     onError: (err: unknown) => {
@@ -35,7 +36,10 @@ export default function BlockedSlotsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteBlockedSlot(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-blocked-slots'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-blocked-slots'] })
+      qc.invalidateQueries({ queryKey: ['blocked-slots'] })
+    },
   })
 
   return (
