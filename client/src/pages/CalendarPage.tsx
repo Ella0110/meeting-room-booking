@@ -24,7 +24,7 @@ export default function CalendarPage() {
 
   function handleCellClick(room: Room, startTime: Date) {
     setPanelRoom(room)
-    setPanelColorIndex(room.colorIndex)
+    setPanelColorIndex(room.colorIndex ?? 0)
     setPanelStartTime(startTime)
     setPanelOpen(true)
   }
@@ -40,7 +40,7 @@ export default function CalendarPage() {
           <div className="flex gap-2 flex-nowrap">
             {rooms.map((room) => (
               <div key={room.id} className="flex items-center gap-1.5">
-                <span style={{ width: 14, height: 14, background: getRoomColor(room.colorIndex), border: '2px solid #000', display: 'inline-block', flexShrink: 0 }} />
+                <span style={{ width: 14, height: 14, background: getRoomColor(room.colorIndex ?? 0), border: '2px solid #000', display: 'inline-block', flexShrink: 0 }} />
                 <span className="font-grotesk font-black text-[11px] whitespace-nowrap">{room.name}</span>
                 <span className="font-mono text-[9px] text-gray-400">{room.capacity}人</span>
               </div>

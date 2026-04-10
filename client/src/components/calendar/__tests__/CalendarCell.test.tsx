@@ -6,7 +6,7 @@ import type { Booking, BlockedSlot, Room } from '../../../types'
 
 const mockRoom: Room = {
   id: 'room-1', name: '珊瑚厅', capacity: 8,
-  location: null, description: null, zone: 'OFFICE', isActive: true,
+  location: null, description: null, zone: 'OFFICE', isActive: true, colorIndex: 0,
 }
 
 const makeBooking = (overrides: Partial<Booking> = {}): Booking => ({
@@ -18,13 +18,15 @@ const makeBooking = (overrides: Partial<Booking> = {}): Booking => ({
 
 const freeCell = { slotIdx: 2, span: 1, type: 'free' as const }
 const cellStyle = { gridRow: '4 / span 1', gridColumn: 2 }
+// Use a far-future date so free cells are never in the past
+const futureDate = new Date(2099, 0, 1)
 
 describe('CalendarCell', () => {
   it('renders free cell as clickable with hover styles', () => {
     const onClick = vi.fn()
     render(
       <CalendarCell cell={freeCell} room={mockRoom} colorIndex={0}
-        selectedDate={new Date(2026, 3, 6)} onCellClick={onClick} style={cellStyle} />
+        selectedDate={futureDate} onCellClick={onClick} style={cellStyle} />
     )
     expect(screen.getByRole('button')).toBeInTheDocument()
   })
@@ -33,7 +35,7 @@ describe('CalendarCell', () => {
     const onClick = vi.fn()
     render(
       <CalendarCell cell={freeCell} room={mockRoom} colorIndex={0}
-        selectedDate={new Date(2026, 3, 6)} onCellClick={onClick} style={cellStyle} />
+        selectedDate={futureDate} onCellClick={onClick} style={cellStyle} />
     )
     await userEvent.click(screen.getByRole('button'))
     expect(onClick).toHaveBeenCalledTimes(1)

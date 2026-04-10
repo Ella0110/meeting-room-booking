@@ -140,8 +140,9 @@ export default function CalendarGrid({
 
         {/* Room headers */}
         {rooms.map((room, rIdx) => {
-          const bg = getRoomColor(room.colorIndex)
-          const fg = getRoomTextColor(room.colorIndex)
+          const ci = room.colorIndex ?? rIdx  // fallback to array index if server hasn't restarted
+          const bg = getRoomColor(ci)
+          const fg = getRoomTextColor(ci)
           return (
             <div
               key={room.id}
@@ -200,7 +201,7 @@ export default function CalendarGrid({
                 key={`${room.id}-${cell.slotIdx}`}
                 cell={cell}
                 room={room}
-                colorIndex={room.colorIndex}
+                colorIndex={room.colorIndex ?? rIdx}
                 selectedDate={selectedDate}
                 onCellClick={onCellClick}
                 style={{ gridRow: `${gridRowStart} / span ${cell.span}`, gridColumn: rIdx + 2 }}

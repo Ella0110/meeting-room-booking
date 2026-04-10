@@ -74,7 +74,7 @@ export default function MobileCalendar({
   }
 
   const activeRoom = rooms[activeRoomIdx]
-  const color = getRoomColor(activeRoom.colorIndex)
+  const color = getRoomColor(activeRoom.colorIndex ?? activeRoomIdx)
   const slotStates = computeSlotStates(activeRoom.id, bookings, blockedSlots)
 
   // For today: hide past slots, start from next whole hour
@@ -103,7 +103,7 @@ export default function MobileCalendar({
             <div className="flex items-center gap-2">
               <div
                 className="w-2 h-2 border border-black flex-shrink-0"
-                style={{ backgroundColor: getRoomColor(room.colorIndex) }}
+                style={{ backgroundColor: getRoomColor(room.colorIndex ?? i) }}
               />
               {room.name}
             </div>

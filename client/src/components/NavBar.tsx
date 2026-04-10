@@ -35,8 +35,9 @@ export default function NavBar() {
                 <div className="hidden md:flex items-center gap-6">
                     <NavLink
                         to="/"
+                        end
                         className={({ isActive }) =>
-                            `font-mono text-xs font-bold uppercase pb-0.5 transition-all ${isActive ? "border-b-4 border-black" : "border-b-2 border-transparent hover:border-black"}`
+                            `font-mono text-xs font-bold uppercase pb-0.5 transition-all active:scale-90 active:opacity-60 ${isActive ? "border-b-4 border-black" : "border-b-2 border-transparent hover:border-black"}`
                         }
                     >
                         日历
@@ -44,7 +45,7 @@ export default function NavBar() {
                     <NavLink
                         to="/my-bookings"
                         className={({ isActive }) =>
-                            `font-mono text-xs font-bold uppercase pb-0.5 transition-all ${isActive ? "border-b-4 border-black" : "border-b-2 border-transparent hover:border-black"}`
+                            `font-mono text-xs font-bold uppercase pb-0.5 transition-all active:scale-90 active:opacity-60 ${isActive ? "border-b-4 border-black" : "border-b-2 border-transparent hover:border-black"}`
                         }
                     >
                         我的预订
@@ -53,7 +54,7 @@ export default function NavBar() {
                         <NavLink
                             to="/admin/users"
                             className={({ isActive }) =>
-                                `font-mono text-xs font-bold uppercase pb-0.5 transition-all ${isActive ? "border-b-4 border-black" : "border-b-2 border-transparent hover:border-black"}`
+                                `font-mono text-xs font-bold uppercase pb-0.5 transition-all active:scale-90 active:opacity-60 ${isActive ? "border-b-4 border-black" : "border-b-2 border-transparent hover:border-black"}`
                             }
                         >
                             管理后台

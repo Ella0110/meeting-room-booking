@@ -17,7 +17,7 @@ const mockListBookings = vi.mocked(bookingsApi.listBookings)
 const mockListBlockedSlots = vi.mocked(bookingsApi.listBlockedSlots)
 
 const rooms = [
-  { id: 'r1', name: '珊瑚厅', capacity: 8, location: null, description: null, zone: 'OFFICE', isActive: true },
+  { id: 'r1', name: '珊瑚厅', capacity: 8, location: null, description: null, zone: 'OFFICE', isActive: true, colorIndex: 0 },
 ]
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -53,6 +53,6 @@ describe('CalendarPage', () => {
       b.getAttribute('aria-label')?.startsWith('预订')
     )
     await userEvent.click(freeCells[0])
-    await waitFor(() => expect(screen.getAllByText('新建预订').length).toBeGreaterThan(0))
+    await waitFor(() => expect(screen.getAllByText(/新建预订/).length).toBeGreaterThan(0))
   })
 })
