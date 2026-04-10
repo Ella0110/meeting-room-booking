@@ -8,7 +8,8 @@ import CalendarGrid from '../components/calendar/CalendarGrid'
 import WeekCalendarGrid from '../components/calendar/WeekCalendarGrid'
 import MobileCalendar from '../components/calendar/MobileCalendar'
 import BookingPanel from '../components/booking/BookingPanel'
-import type { Room, Booking, BlockedSlot } from '../types'
+import EditBookingPanel from '../components/booking/EditBookingPanel'
+import type { Room, Booking, BlockedSlot, MyBooking } from '../types'
 import { formatDate } from '../utils/dateUtils'
 import { getRoomColor } from '../utils/roomColors'
 import { listBookings, listBlockedSlots } from '../api/bookings'
@@ -23,6 +24,9 @@ export default function CalendarPage() {
   const [panelMaxDuration, setPanelMaxDuration] = useState(240)
   const [conflictMsg, setConflictMsg] = useState('')
   const conflictTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [editPanelOpen, setEditPanelOpen] = useState(false)
+  const [editBooking, setEditBooking] = useState<MyBooking | null>(null)
+  const [editColorIndex, setEditColorIndex] = useState(0)
 
   const qc = useQueryClient()
   const dateStr = formatDate(selectedDate)
@@ -87,6 +91,23 @@ export default function CalendarPage() {
     setViewMode('day')
   }
 
+  function handleBookingClick(booking: Booking, room: Room) {
+    const myBooking: MyBooking = {
+      id: booking.id,
+      userId: booking.userId,
+      roomId: booking.roomId,
+      title: booking.title ?? '',
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      status: booking.status,
+      createdAt: booking.createdAt,
+      room: { name: booking.room.name, capacity: room.capacity },
+    }
+    setEditBooking(myBooking)
+    setEditColorIndex(room.colorIndex ?? 0)
+    setEditPanelOpen(true)
+  }
+
   return (
     <div className="flex flex-col h-[calc(100vh-64px)]">
       {/* Conflict toast (hard block) */}
@@ -147,6 +168,7 @@ export default function CalendarPage() {
             blockedSlots={blockedSlots}
             selectedDate={selectedDate}
             onCellClick={handleCellClick}
+            onBookingClick={handleBookingClick}
             isLoading={roomsLoading || bookingsLoading}
           />
         )}
@@ -172,6 +194,12 @@ export default function CalendarPage() {
         maxDuration={panelMaxDuration}
         date={dateStr}
         onClose={() => setPanelOpen(false)}
+      />
+      <EditBookingPanel
+        isOpen={editPanelOpen}
+        booking={editBooking}
+        colorIndex={editColorIndex}
+        onClose={() => setEditPanelOpen(false)}
       />
     </div>
   )

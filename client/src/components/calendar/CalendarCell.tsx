@@ -17,6 +17,7 @@ interface CalendarCellProps {
   colorIndex: number
   selectedDate: Date
   onCellClick: (room: Room, startTime: Date) => void
+  onBookingClick?: (booking: Booking, room: Room) => void
   style: CSSProperties
 }
 
@@ -24,7 +25,7 @@ const CELL_BORDER_HOUR = '1px solid #e5e7eb'
 const CELL_BORDER_HALF = '1px dashed #f3f3f3'
 
 export default function CalendarCell({
-  cell, room, colorIndex, selectedDate, onCellClick, style,
+  cell, room, colorIndex, selectedDate, onCellClick, onBookingClick, style,
 }: CalendarCellProps) {
   const color = getRoomColor(colorIndex)
   const textColor = getRoomTextColor(colorIndex)
@@ -62,6 +63,7 @@ export default function CalendarCell({
   if (cell.type === 'ownBooking' && cell.booking) {
     const start = new Date(cell.booking.startTime)
     const end = new Date(cell.booking.endTime)
+    const isPast = new Date(cell.booking.startTime) <= new Date()
     return (
       <div
         style={{
@@ -72,9 +74,10 @@ export default function CalendarCell({
           padding: '8px 10px',
           overflow: 'hidden',
           zIndex: 10,
-          cursor: 'default',
+          cursor: onBookingClick && !isPast ? 'pointer' : 'default',
         }}
-        className="my-booking flex flex-col"
+        className="my-booking relative flex flex-col"
+        onClick={onBookingClick && !isPast ? () => onBookingClick(cell.booking!, room) : undefined}
       >
         <div
           className="font-grotesk font-black text-xs uppercase truncate leading-tight"
@@ -87,13 +90,9 @@ export default function CalendarCell({
         </div>
         <div
           className="absolute bottom-1 right-1.5 font-mono text-[9px] font-bold uppercase px-1 border"
-          style={{
-            background: 'rgba(0,0,0,0.2)',
-            color: textColor,
-            borderColor: 'rgba(0,0,0,0.3)',
-          }}
+          style={{ background: 'rgba(0,0,0,0.2)', color: textColor, borderColor: 'rgba(0,0,0,0.3)' }}
         >
-          我的
+          {onBookingClick && !isPast ? '点击编辑' : '我的'}
         </div>
       </div>
     )

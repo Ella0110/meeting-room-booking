@@ -10,6 +10,7 @@ interface CalendarGridProps {
   blockedSlots: BlockedSlot[]
   selectedDate: Date
   onCellClick: (room: Room, startTime: Date) => void
+  onBookingClick?: (booking: Booking, room: Room) => void
   isLoading: boolean
 }
 
@@ -100,7 +101,7 @@ function CalendarGridSkeleton({ roomCount }: { roomCount: number }) {
 }
 
 export default function CalendarGrid({
-  rooms, bookings, blockedSlots, selectedDate, onCellClick, isLoading,
+  rooms, bookings, blockedSlots, selectedDate, onCellClick, onBookingClick, isLoading,
 }: CalendarGridProps) {
   if (isLoading) return <CalendarGridSkeleton roomCount={rooms.length || 4} />
 
@@ -204,6 +205,7 @@ export default function CalendarGrid({
                 colorIndex={room.colorIndex ?? rIdx}
                 selectedDate={selectedDate}
                 onCellClick={onCellClick}
+                onBookingClick={onBookingClick}
                 style={{ gridRow: `${gridRowStart} / span ${cell.span}`, gridColumn: rIdx + 2 }}
               />
             )
