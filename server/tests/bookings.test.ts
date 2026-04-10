@@ -5,6 +5,13 @@ import { clearDatabase, createUser, createRoom } from './helpers'
 import { prisma } from '../src/lib/prisma'
 import { updateBooking } from '../src/services/booking.service'
 
+async function loginUser(app: ReturnType<typeof createApp>, email: string): Promise<string> {
+  const res = await request(app)
+    .post('/api/auth/login')
+    .send({ email, password: 'Password123!' })
+  return res.headers['set-cookie'][0]
+}
+
 const app = createApp()
 
 async function bookAs(cookie: string, body: object) {
@@ -253,5 +260,56 @@ describe('updateBooking', () => {
     })
     await expect(updateBooking(bookingId, userId, { startTime: blockedStart, endTime: blockedEnd }))
       .rejects.toMatchObject({ statusCode: 409 })
+  })
+})
+
+describe('PATCH /api/bookings/:id — HTTP integration', () => {
+  let userEmail: string
+  let bookingId: string
+
+  beforeEach(async () => {
+    await clearDatabase()
+    userEmail = `http-patch-${Date.now()}@test.com`
+    const user = await createUser({ email: userEmail })
+    const room = await createRoom({ zone: 'OFFICE', name: `HTTP-Room-${Date.now()}` })
+    const start = nextWeekday(10, 0)
+    const end = new Date(start.getTime() + 60 * 60 * 1000)
+    const booking = await prisma.booking.create({
+      data: {
+        userId: user.id,
+        roomId: room.id,
+        title: 'Original',
+        startTime: start,
+        endTime: end,
+        status: 'CONFIRMED',
+      },
+    })
+    bookingId = booking.id
+  })
+
+  it('returns 401 without auth', async () => {
+    const res = await request(app)
+      .patch(`/api/bookings/${bookingId}`)
+      .send({ title: 'New' })
+    expect(res.status).toBe(401)
+  })
+
+  it('returns 422 on invalid body', async () => {
+    const cookie = await loginUser(app, userEmail)
+    const res = await request(app)
+      .patch(`/api/bookings/${bookingId}`)
+      .set('Cookie', cookie)
+      .send({ title: '' })
+    expect(res.status).toBe(422)
+  })
+
+  it('returns 200 on valid PATCH', async () => {
+    const cookie = await loginUser(app, userEmail)
+    const res = await request(app)
+      .patch(`/api/bookings/${bookingId}`)
+      .set('Cookie', cookie)
+      .send({ title: 'Updated via HTTP' })
+    expect(res.status).toBe(200)
+    expect(res.body.title).toBe('Updated via HTTP')
   })
 })

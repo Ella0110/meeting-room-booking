@@ -95,6 +95,10 @@ export interface UpdateBookingInput {
 export async function updateBooking(bookingId: string, userId: string, input: UpdateBookingInput) {
   const { title, startTime, endTime } = input
 
+  if ((startTime === undefined) !== (endTime === undefined)) {
+    throw new AppError(422, 'startTime 和 endTime 必须同时提供')
+  }
+
   const booking = await prisma.booking.findUnique({ where: { id: bookingId } })
   if (!booking) throw new AppError(404, '预订不存在')
   if (booking.userId !== userId) throw new AppError(403, '无权修改该预订')
@@ -115,6 +119,17 @@ export async function updateBooking(bookingId: string, userId: string, input: Up
   }
 
   return prisma.$transaction(async (tx) => {
+    // Pessimistic lock to prevent concurrent double-bookings
+    await tx.$queryRaw`
+      SELECT id FROM "Booking"
+      WHERE "roomId" = ${booking.roomId}
+        AND status = 'CONFIRMED'::"BookingStatus"
+        AND id::text != ${bookingId}
+        AND "startTime" < ${newEnd}
+        AND "endTime" > ${newStart}
+      FOR UPDATE
+    `
+
     const roomConflict = await tx.booking.findFirst({
       where: {
         id: { not: bookingId },
