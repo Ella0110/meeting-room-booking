@@ -20,6 +20,7 @@ export default function CalendarPage() {
   const [panelRoom, setPanelRoom] = useState<Room | null>(null)
   const [panelColorIndex, setPanelColorIndex] = useState(0)
   const [panelStartTime, setPanelStartTime] = useState<Date | null>(null)
+  const [panelMaxDuration, setPanelMaxDuration] = useState(240)
   const [conflictMsg, setConflictMsg] = useState('')
   const conflictTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -50,9 +51,22 @@ export default function CalendarPage() {
       return
     }
 
+    // Calculate max bookable duration: limited by next booking/blocked slot AND 18:00 business close
+    const allItems = [
+      ...freshBookings.filter(b => b.roomId === room.id).map(b => new Date(b.startTime).getTime()),
+      ...freshBlocked.filter(s => s.roomId === room.id).map(s => new Date(s.startTime).getTime()),
+    ].filter(t => t > startTime.getTime())
+    const nextConflict = allItems.length > 0 ? Math.min(...allItems) : Infinity
+    const minutesUntilNext = nextConflict === Infinity ? 240 : Math.floor((nextConflict - startTime.getTime()) / 60_000)
+    const closeTime = new Date(startTime)
+    closeTime.setHours(18, 0, 0, 0)
+    const minutesToClose = Math.floor((closeTime.getTime() - startTime.getTime()) / 60_000)
+    const maxDuration = Math.min(240, minutesUntilNext, minutesToClose)
+
     setPanelRoom(room)
     setPanelColorIndex(room.colorIndex ?? 0)
     setPanelStartTime(startTime)
+    setPanelMaxDuration(maxDuration)
     setPanelOpen(true)
   }
 
@@ -143,6 +157,7 @@ export default function CalendarPage() {
         room={panelRoom}
         colorIndex={panelColorIndex}
         startTime={panelStartTime}
+        maxDuration={panelMaxDuration}
         date={dateStr}
         onClose={() => setPanelOpen(false)}
       />

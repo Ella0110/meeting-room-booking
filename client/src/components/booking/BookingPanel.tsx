@@ -9,6 +9,7 @@ interface BookingPanelProps {
   room: Room | null
   colorIndex: number
   startTime: Date | null
+  maxDuration: number
   date: string
   onClose: () => void
 }
@@ -122,7 +123,7 @@ function MobileHeader({ room, colorIndex, startTime, onClose }: {
 }
 
 export default function BookingPanel({
-  isOpen, room, colorIndex, startTime, date, onClose,
+  isOpen, room, colorIndex, startTime, maxDuration, date, onClose,
 }: BookingPanelProps) {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -149,6 +150,7 @@ export default function BookingPanel({
             room={room}
             colorIndex={colorIndex}
             startTime={startTime}
+            maxDuration={maxDuration}
             date={date}
             onSuccess={onClose}
             onCancel={onClose}
@@ -172,6 +174,7 @@ export default function BookingPanel({
             room={room}
             colorIndex={colorIndex}
             startTime={startTime}
+            maxDuration={maxDuration}
             date={date}
             onSuccess={onClose}
             onCancel={onClose}

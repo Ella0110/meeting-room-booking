@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Room, Booking } from '../../types'
 import { createBooking } from '../../api/bookings'
@@ -23,18 +23,34 @@ interface BookingFormProps {
   room: Room
   colorIndex?: number
   startTime: Date
+  maxDuration?: number
   date: string
   onSuccess: () => void
   onCancel: () => void
 }
 
+function getDefaultDuration(maxDuration: number): number {
+  const all = [...QUICK_DURATIONS, ...MORE_DURATIONS].filter(d => d.value <= maxDuration)
+  if (all.some(d => d.value === 60)) return 60
+  return all[0]?.value ?? 30
+}
+
 export default function BookingForm({
-  room, colorIndex = 0, startTime, date, onSuccess, onCancel,
+  room, colorIndex = 0, startTime, maxDuration = 240, date, onSuccess, onCancel,
 }: BookingFormProps) {
   const roomColor = getRoomColor(colorIndex)
+  const availableQuick = QUICK_DURATIONS.filter(d => d.value <= maxDuration)
+  const availableMore = MORE_DURATIONS.filter(d => d.value <= maxDuration)
   const [title, setTitle] = useState('')
-  const [durationMin, setDurationMin] = useState(60)
+  const [durationMin, setDurationMin] = useState(() => getDefaultDuration(maxDuration))
   const [serverError, setServerError] = useState('')
+
+  // Reset duration and title when a new slot is selected
+  useEffect(() => {
+    setTitle('')
+    setServerError('')
+    setDurationMin(getDefaultDuration(maxDuration))
+  }, [startTime, maxDuration])
 
   const queryClient = useQueryClient()
   const endTime = new Date(startTime.getTime() + durationMin * 60_000)
@@ -85,8 +101,6 @@ export default function BookingForm({
     })
   }
 
-  const allDurations = [...QUICK_DURATIONS, ...MORE_DURATIONS]
-
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       {/* Title */}
@@ -106,40 +120,51 @@ export default function BookingForm({
 
       {/* Duration */}
       <div className="flex flex-col gap-1.5">
-        <label className="font-grotesk font-black text-xs uppercase">时长</label>
-        <div className="grid grid-cols-4 gap-1.5">
-          {QUICK_DURATIONS.map((d) => (
-            <button
-              key={d.value}
-              type="button"
-              onClick={() => setDurationMin(d.value)}
-              className="rounded-none border-4 border-black font-grotesk font-black text-xs uppercase py-1.5 transition-all"
-              style={durationMin === d.value
-                ? { background: roomColor, color: getRoomTextColor(colorIndex), boxShadow: '4px 4px 0 0 #000' }
-                : { background: '#fff', color: '#000' }
-              }
-            >
-              {d.label}
-            </button>
-          ))}
-        </div>
+        <label className="font-grotesk font-black text-xs uppercase">
+          时长
+          {maxDuration < 240 && (
+            <span className="ml-2 font-mono text-[9px] text-gray-400 normal-case">
+              (最长 {maxDuration >= 60 ? `${maxDuration / 60}小时` : `${maxDuration}分钟`})
+            </span>
+          )}
+        </label>
+        {availableQuick.length > 0 && (
+          <div className="grid grid-cols-4 gap-1.5">
+            {availableQuick.map((d) => (
+              <button
+                key={d.value}
+                type="button"
+                onClick={() => setDurationMin(d.value)}
+                className="rounded-none border-4 border-black font-grotesk font-black text-xs uppercase py-1.5 transition-all"
+                style={durationMin === d.value
+                  ? { background: roomColor, color: getRoomTextColor(colorIndex), boxShadow: '4px 4px 0 0 #000' }
+                  : { background: '#fff', color: '#000' }
+                }
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
+        )}
         {/* More durations */}
-        <div className="grid grid-cols-4 gap-1.5">
-          {MORE_DURATIONS.map((d) => (
-            <button
-              key={d.value}
-              type="button"
-              onClick={() => setDurationMin(d.value)}
-              className="rounded-none border-2 border-black font-mono text-[10px] py-1 transition-all"
-              style={durationMin === d.value
-                ? { background: roomColor, color: getRoomTextColor(colorIndex) }
-                : { background: '#f9fafb', color: '#000' }
-              }
-            >
-              {d.label}
-            </button>
-          ))}
-        </div>
+        {availableMore.length > 0 && (
+          <div className="grid grid-cols-4 gap-1.5">
+            {availableMore.map((d) => (
+              <button
+                key={d.value}
+                type="button"
+                onClick={() => setDurationMin(d.value)}
+                className="rounded-none border-2 border-black font-mono text-[10px] py-1 transition-all"
+                style={durationMin === d.value
+                  ? { background: roomColor, color: getRoomTextColor(colorIndex) }
+                  : { background: '#f9fafb', color: '#000' }
+                }
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
+        )}
         {/* End time preview */}
         <p className="font-mono text-[10px] text-gray-500">
           结束时间：{formatTime(endTime)}
