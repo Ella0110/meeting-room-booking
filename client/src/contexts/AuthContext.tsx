@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import type { AuthUser } from '../types'
 import { logout as apiLogout } from '../api/auth'
 
@@ -11,6 +12,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const qc = useQueryClient()
   const [user, setUserState] = useState<AuthUser | null>(() => {
     try {
       const stored = localStorage.getItem('authUser')
@@ -27,6 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       localStorage.removeItem('authUser')
     }
+    qc.clear()
   }
 
   async function logout() {
