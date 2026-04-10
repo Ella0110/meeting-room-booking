@@ -32,10 +32,10 @@ export default function CalendarPage() {
   useEffect(() => () => { if (conflictTimer.current) clearTimeout(conflictTimer.current) }, [])
 
   async function handleCellClick(room: Room, startTime: Date) {
-    // Refetch to catch any bookings made since last load
+    // Always fetch fresh data to catch bookings made by other users since last load
     const [freshBookings, freshBlocked] = await Promise.all([
-      qc.fetchQuery<Booking[]>({ queryKey: ['bookings', dateStr], queryFn: () => listBookings(dateStr) }),
-      qc.fetchQuery<BlockedSlot[]>({ queryKey: ['blocked-slots', dateStr], queryFn: () => listBlockedSlots(dateStr) }),
+      qc.fetchQuery<Booking[]>({ queryKey: ['bookings', dateStr], queryFn: () => listBookings(dateStr), staleTime: 0 }),
+      qc.fetchQuery<BlockedSlot[]>({ queryKey: ['blocked-slots', dateStr], queryFn: () => listBlockedSlots(dateStr), staleTime: 0 }),
     ])
 
     const slotEnd = new Date(startTime.getTime() + 30 * 60 * 1000)
