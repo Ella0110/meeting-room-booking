@@ -22,9 +22,7 @@ export default function CalendarPage() {
   const [panelStartTime, setPanelStartTime] = useState<Date | null>(null)
   const [panelMaxDuration, setPanelMaxDuration] = useState(240)
   const [conflictMsg, setConflictMsg] = useState('')
-  const [warnMsg, setWarnMsg] = useState('')
   const conflictTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const warnTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const qc = useQueryClient()
   const dateStr = formatDate(selectedDate)
@@ -32,10 +30,7 @@ export default function CalendarPage() {
   const { data: bookings = [], isLoading: bookingsLoading } = useBookings(dateStr)
   const { data: blockedSlots = [] } = useBlockedSlots(dateStr)
 
-  useEffect(() => () => {
-    if (conflictTimer.current) clearTimeout(conflictTimer.current)
-    if (warnTimer.current) clearTimeout(warnTimer.current)
-  }, [])
+  useEffect(() => () => { if (conflictTimer.current) clearTimeout(conflictTimer.current) }, [])
 
   async function handleCellClick(room: Room, startTime: Date) {
     // Always fetch fresh data to catch bookings made by other users since last load
@@ -56,15 +51,16 @@ export default function CalendarPage() {
       return
     }
 
-    // Soft warning: user already has a booking in another room at this time
+    // Hard block: user already has a booking in another room at this time (server also rejects this)
     const selfConflict = freshBookings
       .filter(b => b.isOwn && b.roomId !== room.id)
       .some(b => new Date(b.startTime) < slotEnd && new Date(b.endTime) > startTime)
 
     if (selfConflict) {
-      setWarnMsg('⚠ 你在该时段已有其他预订')
-      if (warnTimer.current) clearTimeout(warnTimer.current)
-      warnTimer.current = setTimeout(() => setWarnMsg(''), 4000)
+      setConflictMsg('你在该时段已有其他预订')
+      if (conflictTimer.current) clearTimeout(conflictTimer.current)
+      conflictTimer.current = setTimeout(() => setConflictMsg(''), 3000)
+      return
     }
 
     // Calculate max bookable duration: limited by next booking/blocked slot AND 18:00 business close
@@ -100,15 +96,6 @@ export default function CalendarPage() {
           style={{ boxShadow: '4px 4px 0 0 #FF006E' }}
         >
           ✕ {conflictMsg}
-        </div>
-      )}
-      {/* Warning toast (soft warning, panel still opens) */}
-      {warnMsg && (
-        <div
-          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-black text-white font-mono text-sm font-bold px-5 py-3 border-4 border-black"
-          style={{ boxShadow: '4px 4px 0 0 #FB5607' }}
-        >
-          {warnMsg}
         </div>
       )}
 
