@@ -29,8 +29,10 @@ export async function sendInvite(req: AuthRequest, res: Response, next: NextFunc
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       },
     })
+    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173'
+    const inviteLink = `${frontendUrl}/invite/${invitation.token}`
     await sendInviteEmail(email, invitation.token, inviter.name)
-    res.status(201).json({ ok: true })
+    res.status(201).json({ ok: true, inviteLink })
   } catch (err) {
     if (err instanceof z.ZodError) { res.status(422).json({ error: err.errors }); return }
     next(err)

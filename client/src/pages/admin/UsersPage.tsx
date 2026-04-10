@@ -8,21 +8,28 @@ export default function UsersPage() {
   const qc = useQueryClient()
   const { data: users = [], isLoading } = useAdminUsers()
   const [inviteEmail, setInviteEmail] = useState('')
-  const [inviteSuccess, setInviteSuccess] = useState('')
+  const [inviteLink, setInviteLink] = useState('')
+  const [copied, setCopied] = useState(false)
   const [inviteError, setInviteError] = useState('')
 
   const inviteMutation = useMutation({
     mutationFn: () => sendInvite(inviteEmail),
-    onSuccess: () => {
-      setInviteSuccess(`邀请已发送至 ${inviteEmail}`)
+    onSuccess: (data) => {
+      setInviteLink(data.inviteLink)
       setInviteEmail('')
-      setTimeout(() => setInviteSuccess(''), 4000)
+      setCopied(false)
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
       setInviteError(msg ?? '发送失败')
     },
   })
+
+  function handleCopy() {
+    navigator.clipboard.writeText(inviteLink)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   const toggleMutation = useMutation({
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => updateUser(id, isActive),
@@ -52,7 +59,29 @@ export default function UsersPage() {
             发送邀请
           </button>
         </div>
-        {inviteSuccess && <p className="font-mono text-sm text-[#06D6A0] mt-2">{inviteSuccess}</p>}
+        {inviteLink && (
+          <div className="mt-3 border-4 border-black bg-white p-3">
+            <p className="font-mono text-xs text-gray-500 mb-1.5">✓ 邀请已创建 — 将以下链接发给对方：</p>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 font-mono text-xs bg-[#f3f4f6] px-2 py-1.5 border-2 border-black truncate">
+                {inviteLink}
+              </code>
+              <button
+                onClick={handleCopy}
+                className="rounded-none border-4 border-black font-grotesk font-black text-xs uppercase px-3 py-1.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] transition-all whitespace-nowrap"
+                style={{ background: copied ? '#06D6A0' : '#FFBE0B' }}
+              >
+                {copied ? '已复制 ✓' : '复制链接'}
+              </button>
+            </div>
+            <button
+              onClick={() => setInviteLink('')}
+              className="mt-2 font-mono text-xs text-gray-400 hover:text-black underline"
+            >
+              关闭
+            </button>
+          </div>
+        )}
         {inviteError && <p className="font-mono text-sm text-[#FF006E] mt-2">{inviteError}</p>}
       </div>
 

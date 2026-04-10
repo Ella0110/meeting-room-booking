@@ -6,8 +6,9 @@ export async function listAdminUsers(): Promise<AdminUser[]> {
   return res.data
 }
 
-export async function sendInvite(email: string): Promise<void> {
-  await api.post('/api/admin/invitations', { email })
+export async function sendInvite(email: string): Promise<{ inviteLink: string }> {
+  const res = await api.post<{ ok: boolean; inviteLink: string }>('/api/admin/invitations', { email })
+  return { inviteLink: res.data.inviteLink }
 }
 
 export async function updateUser(id: string, isActive: boolean): Promise<AdminUser> {
