@@ -105,8 +105,8 @@ export default function CalendarPage() {
       {/* Warning toast (soft warning, panel still opens) */}
       {warnMsg && (
         <div
-          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-[#FFBE0B] text-black font-mono text-sm font-bold px-5 py-3 border-4 border-black"
-          style={{ boxShadow: '4px 4px 0 0 #000' }}
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-black text-white font-mono text-sm font-bold px-5 py-3 border-4 border-black"
+          style={{ boxShadow: '4px 4px 0 0 #FB5607' }}
         >
           {warnMsg}
         </div>
