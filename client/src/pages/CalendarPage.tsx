@@ -47,7 +47,7 @@ export default function CalendarPage() {
     if (occupied) {
       setConflictMsg('该时段已被预订，请选择其他时间')
       if (conflictTimer.current) clearTimeout(conflictTimer.current)
-      conflictTimer.current = setTimeout(() => setConflictMsg(''), 3000)
+      conflictTimer.current = setTimeout(() => setConflictMsg(''), 2000)
       return
     }
 
@@ -59,7 +59,7 @@ export default function CalendarPage() {
     if (selfConflict) {
       setConflictMsg('你在该时段已有其他预订')
       if (conflictTimer.current) clearTimeout(conflictTimer.current)
-      conflictTimer.current = setTimeout(() => setConflictMsg(''), 3000)
+      conflictTimer.current = setTimeout(() => setConflictMsg(''), 2000)
       return
     }
 
