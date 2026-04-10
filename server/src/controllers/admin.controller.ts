@@ -151,6 +151,7 @@ const roomSchema = z.object({
   zone: z.enum(['OFFICE', 'SHARED']),
   location: z.string().optional(),
   description: z.string().optional(),
+  colorIndex: z.number().int().min(0).max(7).optional(),
 })
 
 export async function listRooms(_req: Request, res: Response, next: NextFunction) {
@@ -163,12 +164,14 @@ export async function listRooms(_req: Request, res: Response, next: NextFunction
 export async function createRoom(req: Request, res: Response, next: NextFunction) {
   try {
     const data = roomSchema.parse(req.body)
-    // Auto-assign the next available colorIndex (not used by any existing room)
-    const usedIndices = new Set(
-      (await prisma.room.findMany({ select: { colorIndex: true } })).map((r) => r.colorIndex)
-    )
-    let colorIndex = 0
-    while (usedIndices.has(colorIndex)) colorIndex++
+    let { colorIndex } = data
+    if (colorIndex === undefined) {
+      const usedIndices = new Set(
+        (await prisma.room.findMany({ select: { colorIndex: true } })).map((r) => r.colorIndex)
+      )
+      colorIndex = 0
+      while (usedIndices.has(colorIndex)) colorIndex++
+    }
     const room = await prisma.room.create({ data: { ...data, colorIndex } })
     res.status(201).json(room)
   } catch (err) {
