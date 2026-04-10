@@ -69,6 +69,31 @@ export async function createBooking(req: AuthRequest, res: Response, next: NextF
   }
 }
 
+const updateSchema = z.object({
+  title: z.string().min(1).optional(),
+  startTime: z.string().datetime().optional(),
+  endTime: z.string().datetime().optional(),
+})
+
+export async function updateBooking(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const { title, startTime, endTime } = updateSchema.parse(req.body)
+    const booking = await bookingService.updateBooking(
+      req.params['id'] as string,
+      req.user!.userId,
+      {
+        title,
+        startTime: startTime ? new Date(startTime) : undefined,
+        endTime: endTime ? new Date(endTime) : undefined,
+      }
+    )
+    res.json(booking)
+  } catch (err) {
+    if (err instanceof z.ZodError) { res.status(422).json({ error: err.errors }); return }
+    next(err)
+  }
+}
+
 export async function cancelBooking(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const booking = await bookingService.cancelBooking(

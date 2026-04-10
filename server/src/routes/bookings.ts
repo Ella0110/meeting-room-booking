@@ -9,5 +9,6 @@ router.get('/blocked-slots', bookings.listBlockedSlots)
 router.get('/', bookings.listBookings)
 router.get('/mine', bookings.myBookings)
 router.post('/', bookingLimiter, bookings.createBooking)
+router.patch('/:id', bookings.updateBooking)
 router.delete('/:id', bookings.cancelBooking)
 export default router

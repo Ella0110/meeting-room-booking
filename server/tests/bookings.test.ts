@@ -1,8 +1,9 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import request from 'supertest'
 import { createApp } from '../src/app'
 import { clearDatabase, createUser, createRoom } from './helpers'
 import { prisma } from '../src/lib/prisma'
+import { updateBooking } from '../src/services/booking.service'
 
 const app = createApp()
 
@@ -163,5 +164,94 @@ describe('GET /api/bookings/blocked-slots', () => {
   it('returns 401 without auth', async () => {
     const res = await request(app).get('/api/bookings/blocked-slots?date=2026-04-10')
     expect(res.status).toBe(401)
+  })
+})
+
+describe('updateBooking', () => {
+  let userId: string
+  let roomId: string
+  let bookingId: string
+  const futureStart = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000) // 2 days from now
+  futureStart.setHours(10, 0, 0, 0)
+  const futureEnd = new Date(futureStart.getTime() + 60 * 60 * 1000) // +1h
+
+  beforeEach(async () => {
+    const user = await prisma.user.create({
+      data: { email: `u-${Date.now()}@test.com`, name: 'Test', passwordHash: 'x', role: 'USER' },
+    })
+    userId = user.id
+    const room = await prisma.room.create({
+      data: { name: `R-${Date.now()}`, capacity: 4, zone: 'OFFICE', colorIndex: 0 },
+    })
+    roomId = room.id
+    const booking = await prisma.booking.create({
+      data: { userId, roomId, title: 'Original', startTime: futureStart, endTime: futureEnd, status: 'CONFIRMED' },
+    })
+    bookingId = booking.id
+  })
+
+  afterEach(async () => {
+    await prisma.booking.deleteMany({ where: { roomId } })
+    await prisma.blockedSlot.deleteMany({ where: { roomId } })
+    await prisma.room.delete({ where: { id: roomId } })
+    await prisma.user.delete({ where: { id: userId } })
+  })
+
+  it('updates title only', async () => {
+    const result = await updateBooking(bookingId, userId, { title: 'New Title' })
+    expect(result.title).toBe('New Title')
+    expect(new Date(result.startTime).getTime()).toBe(futureStart.getTime())
+  })
+
+  it('updates start and end time', async () => {
+    const newStart = new Date(futureStart.getTime() + 30 * 60 * 1000) // +30min
+    const newEnd = new Date(newStart.getTime() + 60 * 60 * 1000)
+    const result = await updateBooking(bookingId, userId, { startTime: newStart, endTime: newEnd })
+    expect(new Date(result.startTime).getTime()).toBe(newStart.getTime())
+  })
+
+  it('does not conflict with itself when time unchanged', async () => {
+    const result = await updateBooking(bookingId, userId, { title: 'Same time, new title' })
+    expect(result.title).toBe('Same time, new title')
+  })
+
+  it('rejects if booking not found', async () => {
+    await expect(updateBooking('00000000-0000-0000-0000-000000000000', userId, { title: 'x' }))
+      .rejects.toMatchObject({ statusCode: 404 })
+  })
+
+  it('rejects if not own booking', async () => {
+    const other = await prisma.user.create({
+      data: { email: `other-${Date.now()}@test.com`, name: 'Other', passwordHash: 'x', role: 'USER' },
+    })
+    await expect(updateBooking(bookingId, other.id, { title: 'x' }))
+      .rejects.toMatchObject({ statusCode: 403 })
+    await prisma.user.delete({ where: { id: other.id } })
+  })
+
+  it('rejects if already cancelled', async () => {
+    await prisma.booking.update({ where: { id: bookingId }, data: { status: 'CANCELLED' } })
+    await expect(updateBooking(bookingId, userId, { title: 'x' }))
+      .rejects.toMatchObject({ statusCode: 400 })
+  })
+
+  it('rejects if new time conflicts with another booking in same room', async () => {
+    const conflictStart = new Date(futureStart.getTime() + 90 * 60 * 1000)
+    const conflictEnd = new Date(conflictStart.getTime() + 60 * 60 * 1000)
+    await prisma.booking.create({
+      data: { userId, roomId, title: 'Other', startTime: conflictStart, endTime: conflictEnd, status: 'CONFIRMED' },
+    })
+    await expect(updateBooking(bookingId, userId, { startTime: conflictStart, endTime: conflictEnd }))
+      .rejects.toMatchObject({ statusCode: 409 })
+  })
+
+  it('rejects if new time overlaps blocked slot', async () => {
+    const blockedStart = new Date(futureStart.getTime() + 90 * 60 * 1000)
+    const blockedEnd = new Date(blockedStart.getTime() + 60 * 60 * 1000)
+    await prisma.blockedSlot.create({
+      data: { roomId, reason: 'test', startTime: blockedStart, endTime: blockedEnd, createdBy: userId },
+    })
+    await expect(updateBooking(bookingId, userId, { startTime: blockedStart, endTime: blockedEnd }))
+      .rejects.toMatchObject({ statusCode: 409 })
   })
 })

@@ -86,6 +86,74 @@ export async function createBooking(input: CreateBookingInput) {
   })
 }
 
+export interface UpdateBookingInput {
+  title?: string
+  startTime?: Date
+  endTime?: Date
+}
+
+export async function updateBooking(bookingId: string, userId: string, input: UpdateBookingInput) {
+  const { title, startTime, endTime } = input
+
+  const booking = await prisma.booking.findUnique({ where: { id: bookingId } })
+  if (!booking) throw new AppError(404, '预订不存在')
+  if (booking.userId !== userId) throw new AppError(403, '无权修改该预订')
+  if (booking.status === 'CANCELLED') throw new AppError(400, '预订已取消，无法修改')
+  if (booking.startTime <= new Date()) throw new AppError(422, '无法修改已开始或已过去的预订')
+
+  const newStart = startTime ?? booking.startTime
+  const newEnd = endTime ?? booking.endTime
+
+  if (startTime || endTime) {
+    const startMin = newStart.getMinutes()
+    const endMin = newEnd.getMinutes()
+    if (startMin !== 0 && startMin !== 30) throw new AppError(422, '开始时间必须为整点或半点')
+    if (endMin !== 0 && endMin !== 30) throw new AppError(422, '结束时间必须为整点或半点')
+    const durationMin = (newEnd.getTime() - newStart.getTime()) / 60_000
+    if (durationMin < 30) throw new AppError(422, '最短预订时长为 30 分钟')
+    if (durationMin > 240) throw new AppError(422, '最长预订时长为 4 小时')
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const roomConflict = await tx.booking.findFirst({
+      where: {
+        id: { not: bookingId },
+        roomId: booking.roomId,
+        status: 'CONFIRMED',
+        startTime: { lt: newEnd },
+        endTime: { gt: newStart },
+      },
+    })
+    if (roomConflict) throw new AppError(409, '该时段已被预订，存在冲突')
+
+    const blockedConflict = await tx.blockedSlot.findFirst({
+      where: { roomId: booking.roomId, startTime: { lt: newEnd }, endTime: { gt: newStart } },
+    })
+    if (blockedConflict) throw new AppError(409, '该时段已被管理员封锁')
+
+    const userConflict = await tx.booking.findFirst({
+      where: {
+        id: { not: bookingId },
+        userId,
+        status: 'CONFIRMED',
+        startTime: { lt: newEnd },
+        endTime: { gt: newStart },
+      },
+    })
+    if (userConflict) throw new AppError(409, '您在该时段已有其他预订')
+
+    return tx.booking.update({
+      where: { id: bookingId },
+      data: {
+        ...(title !== undefined && { title }),
+        startTime: newStart,
+        endTime: newEnd,
+      },
+      include: { room: { select: { name: true, capacity: true } } },
+    })
+  })
+}
+
 export async function cancelBooking(bookingId: string, requestingUserId: string, isAdmin: boolean) {
   const booking = await prisma.booking.findUnique({ where: { id: bookingId } })
   if (!booking) throw new AppError(404, '预订不存在')
