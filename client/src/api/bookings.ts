@@ -31,3 +31,14 @@ export async function createBooking(input: CreateBookingInput): Promise<Booking>
 export async function cancelBooking(id: string): Promise<void> {
   await api.delete(`/api/bookings/${id}`)
 }
+
+export interface UpdateBookingInput {
+  title?: string
+  startTime?: string
+  endTime?: string
+}
+
+export async function updateBooking(id: string, input: UpdateBookingInput): Promise<MyBooking> {
+  const res = await api.patch<MyBooking>(`/api/bookings/${id}`, input)
+  return res.data
+}
