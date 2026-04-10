@@ -4,6 +4,7 @@ import { useAdminRooms } from '../../hooks/useAdminData'
 import { createRoom, updateRoom, deleteRoom, enableRoom } from '../../api/admin'
 import type { Room } from '../../types'
 import Skeleton from '../../components/Skeleton'
+import { ROOM_COLORS, getRoomTextColor } from '../../utils/roomColors'
 
 const ZONE_LABELS = { OFFICE: '办公区', SHARED: '共享区' }
 
@@ -16,18 +17,19 @@ export default function RoomsPage() {
   const [capacity, setCapacity] = useState(8)
   const [zone, setZone] = useState<'OFFICE' | 'SHARED'>('OFFICE')
   const [location, setLocation] = useState('')
+  const [colorIndex, setColorIndex] = useState(0)
 
   const saveMutation = useMutation({
     mutationFn: () =>
       editRoom
-        ? updateRoom(editRoom.id, { name, capacity, zone, location: location || undefined })
-        : createRoom({ name, capacity, zone, location: location || undefined }),
+        ? updateRoom(editRoom.id, { name, capacity, zone, location: location || undefined, colorIndex })
+        : createRoom({ name, capacity, zone, location: location || undefined, colorIndex }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-rooms'] })
       qc.invalidateQueries({ queryKey: ['rooms'] })
       setShowForm(false)
       setEditRoom(null)
-      setName(''); setCapacity(8); setZone('OFFICE'); setLocation('')
+      setName(''); setCapacity(8); setZone('OFFICE'); setLocation(''); setColorIndex(0)
     },
   })
 
@@ -51,6 +53,7 @@ export default function RoomsPage() {
     setEditRoom(room)
     setName(room.name); setCapacity(room.capacity); setZone(room.zone)
     setLocation(room.location ?? '')
+    setColorIndex(room.colorIndex ?? 0)
     setShowForm(true)
   }
 
@@ -59,7 +62,7 @@ export default function RoomsPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-grotesk font-black text-3xl uppercase">会议室管理</h1>
         <button
-          onClick={() => { setShowForm(true); setEditRoom(null); setName(''); setCapacity(8); setZone('OFFICE'); setLocation('') }}
+          onClick={() => { setShowForm(true); setEditRoom(null); setName(''); setCapacity(8); setZone('OFFICE'); setLocation(''); setColorIndex(0) }}
           className="rounded-none border-4 border-black bg-black text-white font-grotesk font-black uppercase px-4 py-2 shadow-[4px_4px_0px_0px_rgba(255,190,11,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
         >
           + 新建
@@ -96,6 +99,30 @@ export default function RoomsPage() {
                 placeholder="例：3楼东侧"
                 className="rounded-none border-4 border-black font-mono px-3 py-2 focus:outline-none transition-all" />
             </div>
+            <div className="flex flex-col gap-1 md:col-span-2">
+              <label className="font-grotesk font-black text-sm uppercase">房间颜色</label>
+              <div className="flex gap-2 flex-wrap">
+                {ROOM_COLORS.map((color, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setColorIndex(idx)}
+                    className="w-8 h-8 border-2 flex items-center justify-center transition-all"
+                    style={{
+                      backgroundColor: color,
+                      borderColor: colorIndex === idx ? '#000' : 'transparent',
+                      boxShadow: colorIndex === idx ? '3px 3px 0 0 #000' : 'none',
+                      transform: colorIndex === idx ? 'translate(-1px, -1px)' : 'none',
+                    }}
+                    aria-label={`颜色 ${idx}`}
+                  >
+                    {colorIndex === idx && (
+                      <span style={{ color: getRoomTextColor(idx), fontSize: 14, fontWeight: 900 }}>✓</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
           <div className="flex gap-3 mt-4">
             <button onClick={() => { setShowForm(false); setEditRoom(null) }}
@@ -118,6 +145,10 @@ export default function RoomsPage() {
             <div key={room.id} className={`border-4 border-black p-4 flex items-center justify-between gap-4 ${room.isActive ? 'bg-white' : 'bg-[#f3f4f6]'}`}>
               <div>
                 <div className="flex items-center gap-2">
+                  <span
+                    className="w-3 h-3 border-2 border-black flex-shrink-0"
+                    style={{ backgroundColor: ROOM_COLORS[room.colorIndex ?? 0] }}
+                  />
                   <span className="font-grotesk font-black">{room.name}</span>
                   <span className="font-mono text-xs border-2 border-black px-2 py-0.5">{ZONE_LABELS[room.zone]}</span>
                   {!room.isActive && <span className="font-mono text-xs border-2 border-gray-400 px-2 py-0.5 text-gray-500">停用</span>}

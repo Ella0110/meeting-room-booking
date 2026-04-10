@@ -27,6 +27,7 @@ export interface RoomInput {
   zone: 'OFFICE' | 'SHARED'
   location?: string
   description?: string
+  colorIndex?: number
 }
 
 export async function createRoom(input: RoomInput): Promise<Room> {
