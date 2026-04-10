@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '../../contexts/AuthContext'
 import AcceptInvitePage from '../AcceptInvitePage'
 import * as authApi from '../../api/auth'
@@ -10,14 +11,17 @@ vi.mock('../../api/auth')
 const mockAcceptInvite = vi.mocked(authApi.acceptInvite)
 
 function renderPage(token = 'test-token') {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
-    <MemoryRouter initialEntries={[`/invite/${token}`]}>
-      <AuthProvider>
-        <Routes>
-          <Route path="/invite/:token" element={<AcceptInvitePage />} />
-        </Routes>
-      </AuthProvider>
-    </MemoryRouter>
+    <QueryClientProvider client={qc}>
+      <MemoryRouter initialEntries={[`/invite/${token}`]}>
+        <AuthProvider>
+          <Routes>
+            <Route path="/invite/:token" element={<AcceptInvitePage />} />
+          </Routes>
+        </AuthProvider>
+      </MemoryRouter>
+    </QueryClientProvider>
   )
 }
 
