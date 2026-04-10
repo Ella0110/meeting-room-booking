@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useRooms } from '../hooks/useRooms'
 import { useBookings } from '../hooks/useBookings'
 import { useBlockedSlots } from '../hooks/useBlockedSlots'
@@ -7,9 +8,10 @@ import CalendarGrid from '../components/calendar/CalendarGrid'
 import WeekCalendarGrid from '../components/calendar/WeekCalendarGrid'
 import MobileCalendar from '../components/calendar/MobileCalendar'
 import BookingPanel from '../components/booking/BookingPanel'
-import type { Room } from '../types'
+import type { Room, Booking, BlockedSlot } from '../types'
 import { formatDate } from '../utils/dateUtils'
 import { getRoomColor } from '../utils/roomColors'
+import { listBookings, listBlockedSlots } from '../api/bookings'
 
 export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
@@ -18,13 +20,36 @@ export default function CalendarPage() {
   const [panelRoom, setPanelRoom] = useState<Room | null>(null)
   const [panelColorIndex, setPanelColorIndex] = useState(0)
   const [panelStartTime, setPanelStartTime] = useState<Date | null>(null)
+  const [conflictMsg, setConflictMsg] = useState('')
+  const conflictTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  const qc = useQueryClient()
   const dateStr = formatDate(selectedDate)
   const { data: rooms = [], isLoading: roomsLoading } = useRooms()
   const { data: bookings = [], isLoading: bookingsLoading } = useBookings(dateStr)
   const { data: blockedSlots = [] } = useBlockedSlots(dateStr)
 
-  function handleCellClick(room: Room, startTime: Date) {
+  useEffect(() => () => { if (conflictTimer.current) clearTimeout(conflictTimer.current) }, [])
+
+  async function handleCellClick(room: Room, startTime: Date) {
+    // Refetch to catch any bookings made since last load
+    const [freshBookings, freshBlocked] = await Promise.all([
+      qc.fetchQuery<Booking[]>({ queryKey: ['bookings', dateStr], queryFn: () => listBookings(dateStr) }),
+      qc.fetchQuery<BlockedSlot[]>({ queryKey: ['blocked-slots', dateStr], queryFn: () => listBlockedSlots(dateStr) }),
+    ])
+
+    const slotEnd = new Date(startTime.getTime() + 30 * 60 * 1000)
+    const occupied =
+      freshBookings.some(b => b.roomId === room.id && new Date(b.startTime) < slotEnd && new Date(b.endTime) > startTime) ||
+      freshBlocked.some(s => s.roomId === room.id && new Date(s.startTime) < slotEnd && new Date(s.endTime) > startTime)
+
+    if (occupied) {
+      setConflictMsg('该时段已被预订，请选择其他时间')
+      if (conflictTimer.current) clearTimeout(conflictTimer.current)
+      conflictTimer.current = setTimeout(() => setConflictMsg(''), 3000)
+      return
+    }
+
     setPanelRoom(room)
     setPanelColorIndex(room.colorIndex ?? 0)
     setPanelStartTime(startTime)
@@ -38,6 +63,16 @@ export default function CalendarPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-64px)]">
+      {/* Conflict toast */}
+      {conflictMsg && (
+        <div
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-black text-white font-mono text-sm font-bold px-5 py-3 border-4 border-black"
+          style={{ boxShadow: '4px 4px 0 0 #FF006E' }}
+        >
+          ✕ {conflictMsg}
+        </div>
+      )}
+
       <CalendarHeader
         selectedDate={selectedDate}
         onDateChange={setSelectedDate}
