@@ -72,7 +72,7 @@ export default function CalendarCell({
           padding: '8px 10px',
           overflow: 'hidden',
           zIndex: 10,
-          cursor: 'pointer',
+          cursor: 'default',
         }}
         className="my-booking flex flex-col"
       >
