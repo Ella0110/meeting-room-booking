@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useMyBookings } from '../hooks/useMyBookings'
+import { useRooms } from '../hooks/useRooms'
 import BookingCard from '../components/booking/BookingCard'
+import EditBookingPanel from '../components/booking/EditBookingPanel'
 import Skeleton from '../components/Skeleton'
 import type { MyBooking } from '../types'
 
@@ -13,9 +15,25 @@ function canCancel(b: MyBooking): boolean {
   return b.status === 'CONFIRMED' && new Date(b.startTime) > oneHourFromNow
 }
 
+function canEdit(b: MyBooking): boolean {
+  const oneHourFromNow = new Date(Date.now() + 60 * 60 * 1000)
+  return b.status === 'CONFIRMED' && new Date(b.startTime) > oneHourFromNow
+}
+
 export default function MyBookingsPage() {
   const [tab, setTab] = useState<'upcoming' | 'history'>('upcoming')
   const { data: bookings = [], isLoading } = useMyBookings()
+  const { data: rooms = [] } = useRooms()
+  const [editPanelOpen, setEditPanelOpen] = useState(false)
+  const [editBooking, setEditBooking] = useState<MyBooking | null>(null)
+  const [editColorIndex, setEditColorIndex] = useState(0)
+
+  function handleEdit(b: MyBooking) {
+    const room = rooms.find((r) => r.id === b.roomId)
+    setEditBooking(b)
+    setEditColorIndex(room?.colorIndex ?? 0)
+    setEditPanelOpen(true)
+  }
 
   const upcoming = bookings.filter(isUpcoming)
   const history = bookings.filter((b) => !isUpcoming(b))
@@ -62,11 +80,18 @@ export default function MyBookingsPage() {
         ) : (
           <div className="space-y-4">
             {displayed.map((b) => (
-              <BookingCard key={b.id} booking={b} canCancel={canCancel(b)} />
+              <BookingCard key={b.id} booking={b} canCancel={canCancel(b)} canEdit={canEdit(b)} onEdit={() => handleEdit(b)} />
             ))}
           </div>
         )}
       </div>
+
+      <EditBookingPanel
+        isOpen={editPanelOpen}
+        booking={editBooking}
+        colorIndex={editColorIndex}
+        onClose={() => setEditPanelOpen(false)}
+      />
     </div>
   )
 }

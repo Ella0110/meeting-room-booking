@@ -8,9 +8,11 @@ interface BookingCardProps {
   booking: MyBooking
   roomColorIndex?: number
   canCancel: boolean
+  canEdit?: boolean
+  onEdit?: () => void
 }
 
-export default function BookingCard({ booking, roomColorIndex = 0, canCancel }: BookingCardProps) {
+export default function BookingCard({ booking, roomColorIndex = 0, canCancel, canEdit, onEdit }: BookingCardProps) {
   const qc = useQueryClient()
   const color = getRoomColor(roomColorIndex)
   const start = new Date(booking.startTime)
@@ -39,6 +41,14 @@ export default function BookingCard({ booking, roomColorIndex = 0, canCancel }: 
         </div>
       </div>
 
+      {canEdit && booking.status === 'CONFIRMED' && (
+        <button
+          onClick={onEdit}
+          className="rounded-none border-4 border-black bg-white font-grotesk font-black uppercase text-xs px-3 py-1.5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex-shrink-0"
+        >
+          编辑
+        </button>
+      )}
       {canCancel && booking.status === 'CONFIRMED' && (
         <button
           onClick={() => {
