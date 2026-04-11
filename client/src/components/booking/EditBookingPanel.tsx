@@ -88,6 +88,7 @@ export default function EditBookingPanel({ isOpen, booking, colorIndex, onClose 
         {header}
         <div className="flex-1 overflow-y-auto p-6">
           <EditBookingForm
+            key={booking.id}
             booking={booking}
             colorIndex={colorIndex}
             dayBookings={dayBookings}
@@ -112,6 +113,7 @@ export default function EditBookingPanel({ isOpen, booking, colorIndex, onClose 
         {header}
         <div className="overflow-y-auto p-4">
           <EditBookingForm
+            key={booking.id}
             booking={booking}
             colorIndex={colorIndex}
             dayBookings={dayBookings}
